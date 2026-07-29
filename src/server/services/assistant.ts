@@ -20,6 +20,8 @@ import type { Snapshot, SnapProduct } from "./snapshot";
 export interface AssistantReply {
   answer: string;
   sources: string[];
+  /** false when no rule matched — the caller may escalate to the web assistant */
+  matched?: boolean;
 }
 
 function findProduct(snap: Snapshot, q: string): SnapProduct | undefined {
@@ -202,7 +204,7 @@ export function askAssistant(snap: Snapshot, question: string): AssistantReply {
     if (hit) return hit;
   }
 
-  // Fallback: docs, then capabilities
+  // Fallback: docs, then signal "unmatched" so the caller can try the web
   const hit = searchDocs(snap, q);
   if (hit) return hit;
   return {
@@ -215,6 +217,7 @@ export function askAssistant(snap: Snapshot, question: string): AssistantReply {
       "• Top customers by revenue\n" +
       "• Slow moving products",
     sources: [],
+    matched: false,
   };
 }
 

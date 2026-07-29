@@ -13,6 +13,8 @@ import {
   FlaskConical,
   ScrollText,
   LogOut,
+  Boxes,
+  UserCog,
 } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import type { Permission } from "@/lib/permissions";
@@ -24,8 +26,10 @@ const NAV: { href: string; label: string; icon: typeof Users; permission: Permis
   { href: "/products", label: "Product Catalog", icon: Package, permission: "products:view" },
   { href: "/quotations", label: "Quotations", icon: FileText, permission: "quotations:view" },
   { href: "/orders", label: "Order Tracking", icon: KanbanSquare, permission: "orders:view" },
+  { href: "/inventory", label: "Inventory", icon: Boxes, permission: "inventory:view" },
   { href: "/assistant", label: "AI Assistant", icon: Bot, permission: "assistant:use" },
   { href: "/audit", label: "Audit Log", icon: ScrollText, permission: "audit:view" },
+  { href: "/settings/users", label: "Team & Roles", icon: UserCog, permission: "users:manage" },
 ];
 
 export default function Sidebar({

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Printer } from "lucide-react";
 import { PageHeader, StatusBadge } from "@/components/ui";
 import QuotationActions from "@/components/QuotationActions";
 import { pageContext } from "@/server/context";
@@ -88,7 +88,14 @@ export default async function QuotationsPage() {
                   </td>
                   {canManage && (
                     <td className="px-4 py-3">
-                      <div className="flex justify-end">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/quotations/${q.id}/print`}
+                          className="btn-ghost p-1.5 rounded text-slate-500 hover:text-brand-600"
+                          title="Print / PDF"
+                        >
+                          <Printer size={15} />
+                        </Link>
                         <QuotationActions
                           quotationId={q.id}
                           status={q.status}

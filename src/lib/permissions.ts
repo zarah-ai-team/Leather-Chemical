@@ -25,6 +25,9 @@ export type Permission =
   | "inventory:manage"
   | "documents:view"
   | "documents:manage"
+  | "invoices:view"
+  | "invoices:manage"
+  | "payments:manage"
   | "assistant:use"
   | "costs:view"
   | "audit:view"
@@ -49,6 +52,9 @@ const ALL: Permission[] = [
   "inventory:manage",
   "documents:view",
   "documents:manage",
+  "invoices:view",
+  "invoices:manage",
+  "payments:manage",
   "assistant:use",
   "costs:view",
   "audit:view",
@@ -65,6 +71,7 @@ const VIEW_ALL: Permission[] = [
   "orders:view",
   "inventory:view",
   "documents:view",
+  "invoices:view",
   "assistant:use",
   "costs:view",
 ];
@@ -87,6 +94,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "orders:manage",
     "orders:advance",
     "documents:view",
+    "invoices:view",
     "assistant:use",
     "costs:view",
   ],
@@ -108,6 +116,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "quotations:view",
     "orders:view",
     "documents:view",
+    "invoices:view",
+    "invoices:manage",
+    "payments:manage",
     "costs:view",
     "assistant:use",
   ],

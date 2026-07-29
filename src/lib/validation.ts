@@ -115,3 +115,55 @@ export const orderStageSchema = z
 export const chatSchema = z.object({
   question: z.string().trim().min(1).max(2000),
 });
+
+export const invoiceSchema = z.object({
+  orderId: z.string().optional().or(z.literal("")),
+  customerId: z.string().min(1),
+  amount: z.coerce.number().positive().max(1e12),
+  taxAmount: z.coerce.number().min(0).max(1e12).default(0),
+  dueDate: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : v),
+    z.coerce.date().optional(),
+  ),
+  notes: z.string().trim().max(1000).optional().or(z.literal("")),
+});
+export type InvoiceInput = z.infer<typeof invoiceSchema>;
+
+export const paymentSchema = z.object({
+  invoiceId: z.string().optional().or(z.literal("")),
+  customerId: z.string().min(1),
+  amount: z.coerce.number().positive().max(1e12),
+  method: z.enum(["BANK_TRANSFER", "UPI", "CHEQUE", "CASH", "OTHER"]).default("BANK_TRANSFER"),
+  date: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : v),
+    z.coerce.date().optional(),
+  ),
+  reference: z.string().trim().max(200).optional().or(z.literal("")),
+  notes: z.string().trim().max(1000).optional().or(z.literal("")),
+});
+export type PaymentInput = z.infer<typeof paymentSchema>;
+
+export const stockMovementSchema = z.object({
+  warehouseId: z.string().min(1),
+  productId: z.string().min(1),
+  type: z.enum(["IN", "OUT", "RETURN", "ADJUSTMENT"]),
+  qty: z.coerce.number().positive().max(1e9),
+  batchNo: z.string().trim().max(50).optional().or(z.literal("")),
+  notes: z.string().trim().max(500).optional().or(z.literal("")),
+});
+export type StockMovementInput = z.infer<typeof stockMovementSchema>;
+
+export const createUserSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  email: z.string().trim().email(),
+  password: z.string().min(8).max(128),
+  role: z.enum([
+    "SUPER_ADMIN", "OWNER", "SALES_MANAGER", "SALES_EXECUTIVE", "ACCOUNTS",
+    "PURCHASE", "WAREHOUSE", "OPERATIONS", "SUPPORT", "MANAGEMENT", "AUDITOR",
+  ]),
+});
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+
+export const changeRoleSchema = z.object({
+  role: createUserSchema.shape.role,
+});

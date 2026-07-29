@@ -3,6 +3,7 @@ import { PageHeader, StatCard, Section } from "@/components/ui";
 import { CategoryPie, CustomerBar, ProductBar } from "@/components/Charts";
 import { pageContext } from "@/server/context";
 import { loadSnapshot } from "@/server/services/snapshot";
+import { receivables } from "@/server/services/invoices";
 import {
   dashboardStats,
   growthInsights,
@@ -23,7 +24,10 @@ const INSIGHT_STYLE = {
 
 export default async function DashboardPage() {
   const ctx = await pageContext("dashboard:view");
-  const snap = await loadSnapshot(ctx.organizationId);
+  const [snap, outstanding] = await Promise.all([
+    loadSnapshot(ctx.organizationId),
+    receivables(ctx.organizationId),
+  ]);
   const stats = dashboardStats(snap);
   const insights = growthInsights(snap);
   const byCategory = revenueByCategory(snap);
@@ -37,9 +41,10 @@ export default async function DashboardPage() {
         subtitle={`Welcome back, ${ctx.userName.split(" ")[0]} — live view of ${ctx.organizationName}`}
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <StatCard label="Order Value" value={inr(stats.totalRevenue)} hint={`${snap.orders.length} orders`} />
         <StatCard label="Est. Profit" value={inr(stats.estProfit)} accent="green" />
+        <StatCard label="Receivables" value={inr(outstanding)} hint="unpaid invoices" accent="amber" />
         <StatCard label="Pending Quotes" value={String(stats.pendingQuotations)} accent="amber" />
         <StatCard label="Follow-ups Due" value={String(stats.followUpsDue)} accent="rose" />
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, FileText, Send } from "lucide-react";
+import { Bot, FileText, Globe, Send } from "lucide-react";
 import { PageHeader } from "@/components/ui";
 
 interface Msg {
@@ -19,13 +19,14 @@ const SAMPLES = [
   "How much margin on Carnauba Wax?",
   "Slow moving products",
   "What is the dosage for Synthetic Fatliquor?",
+  "Latest market trends in leather chemicals",
 ];
 
 export default function AssistantPage() {
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
-      text: "Hi! I can answer questions about your customers, suppliers, products, quotations and orders — using your company data only. Try one of the samples below.",
+      text: "Hi! I can answer questions about your customers, suppliers, products, quotations and orders from your company data — and market or industry questions using web search. Try one of the samples below.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -92,14 +93,27 @@ export default function AssistantPage() {
               {m.text}
               {m.sources && m.sources.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {m.sources.map((s) => (
-                    <span
-                      key={s}
-                      className="inline-flex items-center gap-1 text-[11px] bg-slate-100 text-slate-500 rounded-full px-2 py-0.5"
-                    >
-                      <FileText size={10} /> {s}
-                    </span>
-                  ))}
+                  {m.sources.map((s) =>
+                    s.startsWith("http") ? (
+                      <a
+                        key={s}
+                        href={s}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] bg-blue-50 text-blue-600 rounded-full px-2 py-0.5 hover:underline max-w-[240px] truncate"
+                      >
+                        <Globe size={10} className="shrink-0" />
+                        {new URL(s).hostname.replace(/^www\./, "")}
+                      </a>
+                    ) : (
+                      <span
+                        key={s}
+                        className="inline-flex items-center gap-1 text-[11px] bg-slate-100 text-slate-500 rounded-full px-2 py-0.5"
+                      >
+                        <FileText size={10} /> {s}
+                      </span>
+                    ),
+                  )}
                 </div>
               )}
             </div>

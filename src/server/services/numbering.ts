@@ -8,7 +8,7 @@ import type { Prisma } from "@prisma/client";
 export async function nextNumber(
   tx: Prisma.TransactionClient,
   organizationId: string,
-  prefix: "QUO" | "ORD",
+  prefix: "QUO" | "ORD" | "INV",
 ): Promise<string> {
   const year = new Date().getFullYear();
   const key = `${prefix}-${year}`;

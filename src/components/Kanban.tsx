@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { OrderStage } from "@prisma/client";
 import { ORDER_STAGES, ORDER_STAGE_LABELS } from "@/lib/labels";
@@ -70,7 +71,12 @@ export default function Kanban({
                   key={c.id}
                   className={`card p-3 border-t-4 ${STAGE_COLOR[stage]} ${busy === c.id ? "opacity-50" : ""}`}
                 >
-                  <div className="font-medium text-sm">{c.number}</div>
+                  <Link
+                    href={`/orders/${c.id}`}
+                    className="font-medium text-sm text-brand-700 hover:underline"
+                  >
+                    {c.number}
+                  </Link>
                   <div className="text-xs text-slate-500">{c.customer}</div>
                   <div className="text-sm font-semibold mt-1">{c.value}</div>
                   {c.expectedDelivery && (

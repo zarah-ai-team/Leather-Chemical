@@ -102,6 +102,8 @@ model Organization {
   stockItems    StockItem[]
   stockMovements StockMovement[]
   sequences     NumberSequence[]
+  invoices      Invoice[]
+  payments      Payment[]
 }
 
 enum Role {
@@ -181,6 +183,8 @@ model Customer {
   quotations   Quotation[]
   orders       Order[]
   documents    Document[]
+  invoices     Invoice[]
+  payments     Payment[]
 
   @@index([organizationId, companyName])
 }
@@ -400,6 +404,7 @@ model Order {
   quotation    Quotation?        @relation(fields: [quotationId], references: [id], onDelete: SetNull)
   lines        OrderLine[]
   stageEvents  OrderStageEvent[]
+  invoices     Invoice[]
 
   @@unique([organizationId, number])
   @@index([organizationId, stage])
@@ -433,6 +438,66 @@ model OrderStageEvent {
   changedBy User? @relation(fields: [changedById], references: [id], onDelete: SetNull)
 
   @@index([orderId, changedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Invoices & payments (accounting-lite; Tally stays the book of record)
+// ---------------------------------------------------------------------------
+
+enum InvoiceStatus {
+  ISSUED
+  PAID
+  CANCELLED
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  organizationId String
+  number         String
+  orderId        String?
+  customerId     String
+  amount         Decimal       @db.Decimal(14, 2) // pre-tax
+  taxAmount      Decimal       @default(0) @db.Decimal(14, 2)
+  status         InvoiceStatus @default(ISSUED)
+  issuedAt       DateTime      @default(now())
+  dueDate        DateTime?
+  notes          String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  order        Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  payments     Payment[]
+
+  @@unique([organizationId, number])
+  @@index([organizationId, status])
+  @@index([customerId])
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  UPI
+  CHEQUE
+  CASH
+  OTHER
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  organizationId String
+  invoiceId      String?
+  customerId     String
+  amount         Decimal       @db.Decimal(14, 2)
+  method         PaymentMethod @default(BANK_TRANSFER)
+  date           DateTime      @default(now())
+  reference      String?
+  notes          String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoice      Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, date])
+  @@index([invoiceId])
 }
 
 // ---------------------------------------------------------------------------

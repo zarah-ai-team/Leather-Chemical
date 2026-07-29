@@ -4,6 +4,9 @@ import type {
   OrderStage,
   ActivityType,
   Role,
+  InvoiceStatus,
+  PaymentMethod,
+  StockMovementType,
 } from "@prisma/client";
 
 /** Display labels for Postgres enums. Single source of truth for the UI. */
@@ -70,6 +73,33 @@ export const ROLE_LABELS: Record<Role, string> = {
   MANAGEMENT: "Management",
   AUDITOR: "Auditor",
 };
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  ISSUED: "Issued",
+  PAID: "Paid",
+  CANCELLED: "Cancelled",
+};
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  BANK_TRANSFER: "Bank Transfer",
+  UPI: "UPI",
+  CHEQUE: "Cheque",
+  CASH: "Cash",
+  OTHER: "Other",
+};
+export const PAYMENT_METHODS = Object.keys(
+  PAYMENT_METHOD_LABELS,
+) as PaymentMethod[];
+
+export const STOCK_MOVEMENT_LABELS: Record<StockMovementType, string> = {
+  IN: "Goods In",
+  OUT: "Goods Out",
+  RETURN: "Return",
+  ADJUSTMENT: "Adjustment",
+};
+export const STOCK_MOVEMENT_TYPES = Object.keys(
+  STOCK_MOVEMENT_LABELS,
+) as StockMovementType[];
 
 /** Indian currency formatting (₹ Cr / L / K). */
 export function inr(n: number): string {
