@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -11,20 +11,44 @@ import {
   KanbanSquare,
   Bot,
   FlaskConical,
+  ScrollText,
+  LogOut,
 } from "lucide-react";
+import { signOut } from "@/lib/auth-client";
+import type { Permission } from "@/lib/permissions";
 
-const NAV = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/customers", label: "Customers (CRM)", icon: Users },
-  { href: "/suppliers", label: "Suppliers", icon: Factory },
-  { href: "/products", label: "Product Catalog", icon: Package },
-  { href: "/quotations", label: "Quotations", icon: FileText },
-  { href: "/orders", label: "Order Tracking", icon: KanbanSquare },
-  { href: "/assistant", label: "AI Assistant", icon: Bot },
+const NAV: { href: string; label: string; icon: typeof Users; permission: Permission }[] = [
+  { href: "/", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard:view" },
+  { href: "/customers", label: "Customers (CRM)", icon: Users, permission: "customers:view" },
+  { href: "/suppliers", label: "Suppliers", icon: Factory, permission: "suppliers:view" },
+  { href: "/products", label: "Product Catalog", icon: Package, permission: "products:view" },
+  { href: "/quotations", label: "Quotations", icon: FileText, permission: "quotations:view" },
+  { href: "/orders", label: "Order Tracking", icon: KanbanSquare, permission: "orders:view" },
+  { href: "/assistant", label: "AI Assistant", icon: Bot, permission: "assistant:use" },
+  { href: "/audit", label: "Audit Log", icon: ScrollText, permission: "audit:view" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  userName,
+  roleLabel,
+  organizationName,
+  permissions,
+}: {
+  userName: string;
+  roleLabel: string;
+  organizationName: string;
+  permissions: Permission[];
+}) {
   const path = usePathname();
+  const router = useRouter();
+  const items = NAV.filter((n) => permissions.includes(n.permission));
+
+  async function handleSignOut() {
+    await signOut();
+    router.push("/login");
+    router.refresh();
+  }
+
   return (
     <aside className="w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0">
       <div className="px-5 py-5 border-b border-slate-200 flex items-center gap-2">
@@ -33,11 +57,11 @@ export default function Sidebar() {
         </div>
         <div>
           <div className="font-semibold leading-tight">LeatherChem</div>
-          <div className="text-xs text-slate-500">Trading TMS</div>
+          <div className="text-xs text-slate-500">{organizationName}</div>
         </div>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {NAV.map((n) => {
+        {items.map((n) => {
           const active = n.href === "/" ? path === "/" : path.startsWith(n.href);
           const Icon = n.icon;
           return (
@@ -54,8 +78,18 @@ export default function Sidebar() {
           );
         })}
       </nav>
-      <div className="p-3 text-xs text-slate-400 border-t border-slate-200">
-        Prototype · local data · no external services
+      <div className="p-3 border-t border-slate-200 flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-sm font-medium truncate">{userName}</div>
+          <div className="text-xs text-slate-400">{roleLabel}</div>
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="btn-ghost p-2 rounded-lg text-slate-500 hover:text-rose-600"
+          title="Sign out"
+        >
+          <LogOut size={16} />
+        </button>
       </div>
     </aside>
   );
