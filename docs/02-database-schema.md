@@ -219,9 +219,9 @@ Human-readable numbers (`QUO-2026-001`) can't come from cuids or DB sequences (p
 
 ### Cascade vs Restrict vs SetNull
 - **Cascade from `Organization`** everywhere: deleting a tenant removes all of its data — correct for tenancy, and impossible to half-delete.
-- **Cascade for composition**: children that are meaningless without their parent (Contact→Customer, QuotationLine→Quotation, OrderLine→Order, StageEvent→Order, StockItem→Warehouse).
-- **Restrict for commercial history**: `Quotation.customer`, `Order.customer`, `QuotationLine.product`, `OrderLine.product`. You cannot delete a customer or product that appears in commercial documents — the paper trail wins. (Practically, entities are edited, not deleted; there are no delete endpoints yet.)
-- **SetNull for attribution**: `assignedTo`, `createdBy`, `changedBy`, `AuditLog.user`, `Order.quotationId`, document links. Removing a user or source must never destroy business records — the reference just goes anonymous.
+- **Cascade for composition**: children that are meaningless without their parent (Contact→Customer, QuotationLine→Quotation, OrderLine→Order, StageEvent→Order, StockItem→Warehouse, PurchaseOrderLine→PurchaseOrder).
+- **Restrict for commercial history**: `Quotation.customer`, `Order.customer`, `Invoice.customer`, `Payment.customer`, `PurchaseOrder.supplier`, `QuotationLine.product`, `OrderLine.product`, `PurchaseOrderLine.product`. You cannot delete a customer, supplier, or product that appears in commercial documents — the paper trail wins. (Practically, entities are edited, not deleted; the only delete endpoints are documents and import undo, both of which are guarded.)
+- **SetNull for attribution**: `assignedTo`, `createdBy`, `changedBy`, `uploadedBy`, `AuditLog.user`, `ImportBatch.createdBy`, `Order.quotationId`, `Invoice.orderId`, `Payment.invoiceId`, and all `Document` links (product/customer/supplier). Removing a user or source must never destroy business records — the reference just goes anonymous.
 
 ### Migration strategy
 - **Development:** `npm run db:push` (`prisma db push`) — fast schema iteration against a dev Neon branch, no migration files; `npm run db:seed` (idempotent — wipes and regenerates the demo org) restores data after destructive pushes.
