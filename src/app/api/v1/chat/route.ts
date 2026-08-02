@@ -17,10 +17,26 @@ export async function POST(req: Request) {
     }
     const { question } = chatSchema.parse(await req.json());
 
+    const wantsWeb = looksLikeWebQuestion(question);
+
     // Clearly external questions (market prices, news, industry) → web first
-    if (webAssistantAvailable() && looksLikeWebQuestion(question)) {
-      if (!rateLimit(`chat-web:${ctx.userId}`, 10, 60_000)) {
-        return Response.json({ error: "Too many web questions — try again in a minute" }, { status: 429 });
+    if (wantsWeb) {
+      if (!webAssistantAvailable()) {
+        return Response.json({
+          answer:
+            "That looks like a market or industry question, which needs web access. " +
+            "Add a free Google Gemini key as GEMINI_API_KEY in your .env file (get one at " +
+            "aistudio.google.com/apikey) and I can answer these with cited sources.\n\n" +
+            "Meanwhile I can answer anything about your own customers, suppliers, products, " +
+            "quotations, orders and uploaded documents.",
+          sources: [],
+        });
+      }
+      if (!rateLimit(`chat-web:${ctx.userId}`, 20, 60_000)) {
+        return Response.json(
+          { error: "Too many web questions — try again in a minute" },
+          { status: 429 },
+        );
       }
       return Response.json(await askWebAssistant(question));
     }
@@ -31,7 +47,7 @@ export async function POST(req: Request) {
 
     // Nothing matched → escalate to the web assistant when configured
     if (reply.matched === false && webAssistantAvailable()) {
-      if (!rateLimit(`chat-web:${ctx.userId}`, 10, 60_000)) {
+      if (!rateLimit(`chat-web:${ctx.userId}`, 20, 60_000)) {
         return Response.json(reply);
       }
       return Response.json(await askWebAssistant(question));

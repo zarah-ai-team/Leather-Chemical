@@ -13,7 +13,7 @@ import type { Snapshot, SnapProduct } from "./snapshot";
 /**
  * Rule-based assistant (Phase 1). Deterministic keyword router over the org
  * snapshot — zero external calls, so it works with no API key configured.
- * Phase 3 replaces this with Claude tool-use + RAG (docs/05-ai-architecture.md);
+ * A future phase can layer semantic retrieval on top (docs/05-ai-architecture.md);
  * the routing branches below become typed tools with the same semantics.
  */
 
@@ -40,20 +40,87 @@ function findProduct(snap: Snapshot, q: string): SnapProduct | undefined {
   return best?.p ?? byCategory;
 }
 
-function searchDocs(snap: Snapshot, q: string): { answer: string; sources: string[] } | null {
-  const words = q.toLowerCase().split(/\W+/).filter((w) => w.length > 3);
+const STOPWORDS = new Set([
+  "what", "when", "where", "which", "with", "this", "that", "does", "have",
+  "from", "about", "there", "their", "should", "would", "could", "please",
+  "tell", "give", "show", "much", "many", "into", "used", "using",
+]);
+
+/**
+ * Keyword retrieval over uploaded document text. Returns the most relevant
+ * passage around the matched terms rather than the whole file, so long PDFs
+ * give a focused answer.
+ */
+function searchDocs(snap: Snapshot, q: string): AssistantReply | null {
+  const words = q
+    .toLowerCase()
+    .split(/\W+/)
+    .filter((w) => w.length > 3 && !STOPWORDS.has(w));
+  if (words.length === 0) return null;
+
   const scored = snap.docs
     .map((d) => {
-      const text = `${d.content} ${d.title}`.toLowerCase();
-      const score = words.reduce((s, w) => s + (text.includes(w) ? 1 : 0), 0);
+      const haystack = `${d.title} ${d.content}`.toLowerCase();
+      // Title hits count double — they signal the document is *about* the topic
+      const titleLower = d.title.toLowerCase();
+      let score = 0;
+      for (const w of words) {
+        if (titleLower.includes(w)) score += 2;
+        if (haystack.includes(w)) score += 1;
+      }
       return { d, score };
     })
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 2);
+    .slice(0, 3);
+
   if (scored.length === 0) return null;
+
+  /**
+   * Return the passage that best answers the question: the window containing
+   * the most distinct query terms, not simply the first match. Without this a
+   * question about dosage returns the document's title page.
+   */
+  const excerpt = (content: string): string => {
+    const WINDOW = 700;
+    if (content.length <= WINDOW) return content.trim();
+    const lower = content.toLowerCase();
+
+    // Every position where any query term occurs
+    const positions: { at: number; word: string }[] = [];
+    for (const w of words) {
+      let from = 0;
+      for (;;) {
+        const i = lower.indexOf(w, from);
+        if (i < 0) break;
+        positions.push({ at: i, word: w });
+        from = i + w.length;
+      }
+    }
+    if (positions.length === 0) return content.slice(0, WINDOW).trim() + "…";
+
+    let best = { start: 0, distinct: -1 };
+    for (const p of positions) {
+      const start = Math.max(0, p.at - Math.floor(WINDOW / 3));
+      const end = start + WINDOW;
+      const distinct = new Set(
+        positions.filter((q) => q.at >= start && q.at < end).map((q) => q.word),
+      ).size;
+      if (distinct > best.distinct) best = { start, distinct };
+    }
+
+    const end = Math.min(content.length, best.start + WINDOW);
+    return (
+      (best.start > 0 ? "…" : "") +
+      content.slice(best.start, end).trim() +
+      (end < content.length ? "…" : "")
+    );
+  };
+
   return {
-    answer: scored.map((x) => `From "${x.d.title}":\n${x.d.content}`).join("\n\n"),
+    answer: scored
+      .map((x) => `From "${x.d.title}":\n${excerpt(x.d.content)}`)
+      .join("\n\n"),
     sources: scored.map((x) => x.d.title),
   };
 }
@@ -67,7 +134,11 @@ export function askAssistant(snap: Snapshot, question: string): AssistantReply {
     if (due.length === 0)
       return { answer: "No customers need follow-up right now — all relationships are active.", sources: ["CRM activity timelines"] };
     const listing = due
-      .map((c) => `• ${c.companyName} — last touch ${lastTouchDays(c) ?? "unknown"} days ago, ~${inr(c.annualPurchaseValue)}/yr`)
+      .map((c) => {
+        const days = lastTouchDays(c);
+        const when = days === null ? "no interaction logged yet" : `last touch ${days} days ago`;
+        return `• ${c.companyName} — ${when}, ~${inr(c.annualPurchaseValue)}/yr`;
+      })
       .join("\n");
     return {
       answer: `${due.length} customer(s) need follow-up:\n${listing}\n\nSuggest calling the top accounts first.`,

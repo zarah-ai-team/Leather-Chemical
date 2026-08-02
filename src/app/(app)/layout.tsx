@@ -1,4 +1,5 @@
 import Sidebar from "@/components/Sidebar";
+import GlobalSearch from "@/components/GlobalSearch";
 import { pageContext } from "@/server/context";
 import { ROLE_PERMISSIONS } from "@/lib/permissions";
 import { ROLE_LABELS } from "@/lib/labels";
@@ -17,7 +18,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         organizationName={ctx.organizationName}
         permissions={permissions}
       />
-      <main className="flex-1 min-w-0 min-h-screen p-6 lg:p-8">{children}</main>
+      <main className="flex-1 min-w-0 min-h-screen">
+        <header className="sticky top-0 z-30 bg-slate-50/80 backdrop-blur border-b border-slate-200 px-6 lg:px-8 py-3 flex justify-end print:hidden">
+          <GlobalSearch />
+        </header>
+        <div className="p-6 lg:p-8">{children}</div>
+      </main>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import type {
   InvoiceStatus,
   PaymentMethod,
   StockMovementType,
+  PurchaseOrderStatus,
 } from "@prisma/client";
 
 /** Display labels for Postgres enums. Single source of truth for the UI. */
@@ -100,6 +101,18 @@ export const STOCK_MOVEMENT_LABELS: Record<StockMovementType, string> = {
 export const STOCK_MOVEMENT_TYPES = Object.keys(
   STOCK_MOVEMENT_LABELS,
 ) as StockMovementType[];
+
+export const PURCHASE_STATUS_LABELS: Record<PurchaseOrderStatus, string> = {
+  DRAFT: "Draft",
+  SENT: "Sent to Supplier",
+  CONFIRMED: "Confirmed",
+  PARTIALLY_RECEIVED: "Partially Received",
+  RECEIVED: "Received",
+  CANCELLED: "Cancelled",
+};
+export const PURCHASE_STATUSES = Object.keys(
+  PURCHASE_STATUS_LABELS,
+) as PurchaseOrderStatus[];
 
 /** Indian currency formatting (₹ Cr / L / K). */
 export function inr(n: number): string {

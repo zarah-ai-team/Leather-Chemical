@@ -32,10 +32,12 @@ body {
 
 /* Printable documents (quotation PDF etc.): hide the app chrome */
 @media print {
-  aside {
+  aside,
+  header {
     display: none !important;
   }
-  main {
+  main,
+  main > div {
     padding: 0 !important;
   }
   body {

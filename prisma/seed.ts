@@ -93,6 +93,44 @@ const CATEGORY_WORD: Record<ProductCategory, string> = {
   RETANNING_CHEMICALS: "retanning",
 };
 
+/**
+ * Delete an organization and everything under it.
+ *
+ * A plain `organization.delete()` is not enough: Product and Customer are
+ * referenced with onDelete: Restrict from quotation/order lines (deliberately —
+ * you must not be able to delete a product that sits on a live document), so
+ * the cascade stops there. Deleting in dependency order clears those first.
+ */
+async function wipeOrganization(organizationId: string) {
+  const org = { organizationId };
+  await prisma.payment.deleteMany({ where: org });
+  await prisma.invoice.deleteMany({ where: org });
+  await prisma.orderStageEvent.deleteMany({ where: { order: { organizationId } } });
+  await prisma.orderLine.deleteMany({ where: { order: { organizationId } } });
+  await prisma.order.deleteMany({ where: org });
+  await prisma.quotationLine.deleteMany({ where: { quotation: { organizationId } } });
+  await prisma.quotation.deleteMany({ where: org });
+  await prisma.purchaseOrderLine.deleteMany({ where: { purchaseOrder: { organizationId } } });
+  await prisma.purchaseOrder.deleteMany({ where: org });
+  await prisma.stockMovement.deleteMany({ where: org });
+  await prisma.stockItem.deleteMany({ where: org });
+  await prisma.warehouse.deleteMany({ where: org });
+  await prisma.supplierPrice.deleteMany({ where: { supplier: { organizationId } } });
+  await prisma.supplierProduct.deleteMany({ where: { supplier: { organizationId } } });
+  await prisma.productPrice.deleteMany({ where: { product: { organizationId } } });
+  await prisma.document.deleteMany({ where: org });
+  await prisma.activityEvent.deleteMany({ where: org });
+  await prisma.contact.deleteMany({ where: { customer: { organizationId } } });
+  await prisma.customer.deleteMany({ where: org });
+  await prisma.product.deleteMany({ where: org });
+  await prisma.supplier.deleteMany({ where: org });
+  await prisma.importBatch.deleteMany({ where: org });
+  await prisma.auditLog.deleteMany({ where: org });
+  await prisma.numberSequence.deleteMany({ where: org });
+  await prisma.membership.deleteMany({ where: org });
+  await prisma.organization.delete({ where: { id: organizationId } });
+}
+
 async function main() {
   _s = 1337;
   console.log("Seeding LeatherChem TMS demo data...");
@@ -101,7 +139,7 @@ async function main() {
   const existing = await prisma.organization.findUnique({ where: { slug: "leatherchem" } });
   if (existing) {
     console.log("Existing demo org found — wiping its data...");
-    await prisma.organization.delete({ where: { id: existing.id } }); // cascades
+    await wipeOrganization(existing.id);
   }
   const org = await prisma.organization.create({
     data: { name: "LeatherChem Trading Co.", slug: "leatherchem", gstin: "33AABCL1234F1Z5" },
@@ -385,10 +423,40 @@ async function main() {
     },
   });
 
-  // ---- Default warehouse ----
-  await prisma.warehouse.create({
+  // ---- Warehouses + opening stock ----
+  const mainWarehouse = await prisma.warehouse.create({
     data: { organizationId: org.id, name: "Main Warehouse", location: "Chennai" },
   });
+  await prisma.warehouse.create({
+    data: { organizationId: org.id, name: "Kanpur Depot", location: "Kanpur" },
+  });
+
+  // Opening stock for the first six products so inventory and the valuation
+  // report are populated on a fresh install.
+  for (const p of products.slice(0, 6)) {
+    const qty = int(200, 1500);
+    await prisma.stockItem.create({
+      data: {
+        organizationId: org.id,
+        warehouseId: mainWarehouse.id,
+        productId: p.id,
+        batchNo: `OPEN-${String(int(100, 999))}`,
+        qty,
+        reorderLevel: Math.round(qty * 0.25),
+      },
+    });
+    await prisma.stockMovement.create({
+      data: {
+        organizationId: org.id,
+        warehouseId: mainWarehouse.id,
+        productId: p.id,
+        type: "IN",
+        qty,
+        date: daysAgo(int(5, 45)),
+        notes: "Opening stock",
+      },
+    });
+  }
 
   const counts = {
     suppliers: suppliers.length,

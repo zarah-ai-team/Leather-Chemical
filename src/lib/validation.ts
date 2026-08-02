@@ -167,3 +167,42 @@ export type CreateUserInput = z.infer<typeof createUserSchema>;
 export const changeRoleSchema = z.object({
   role: createUserSchema.shape.role,
 });
+
+export const purchaseOrderSchema = z.object({
+  supplierId: z.string().min(1, "Pick a supplier"),
+  expectedDate: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : v),
+    z.coerce.date().optional(),
+  ),
+  notes: z.string().trim().max(2000).optional().or(z.literal("")),
+  lines: z
+    .array(
+      z.object({
+        productId: z.string().min(1, "Pick a product"),
+        qty: z.coerce.number().positive().max(1e7),
+        unitCost: z.coerce.number().positive().max(1e9),
+      }),
+    )
+    .min(1, "Add at least one line"),
+});
+export type PurchaseOrderInput = z.infer<typeof purchaseOrderSchema>;
+
+export const purchaseStatusSchema = z.object({
+  status: z.enum([
+    "DRAFT", "SENT", "CONFIRMED", "PARTIALLY_RECEIVED", "RECEIVED", "CANCELLED",
+  ]),
+});
+
+export const goodsReceiptSchema = z.object({
+  warehouseId: z.string().min(1, "Pick a warehouse"),
+  batchNo: z.string().trim().max(50).optional().or(z.literal("")),
+  lines: z
+    .array(
+      z.object({
+        lineId: z.string().min(1),
+        qty: z.coerce.number().min(0).max(1e7),
+      }),
+    )
+    .min(1),
+});
+export type GoodsReceiptInput = z.infer<typeof goodsReceiptSchema>;

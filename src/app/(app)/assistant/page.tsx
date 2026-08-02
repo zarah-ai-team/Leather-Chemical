@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Bot, FileText, Globe, Send } from "lucide-react";
 import { PageHeader } from "@/components/ui";
 
@@ -23,6 +24,15 @@ const SAMPLES = [
 ];
 
 export default function AssistantPage() {
+  return (
+    <Suspense>
+      <Assistant />
+    </Suspense>
+  );
+}
+
+function Assistant() {
+  const params = useSearchParams();
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
@@ -37,36 +47,49 @@ export default function AssistantPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
-  async function send(q?: string) {
-    const question = (q ?? input).trim();
-    if (!question || busy) return;
-    setInput("");
-    setMessages((m) => [...m, { role: "user", text: question }]);
-    setBusy(true);
-    try {
-      const res = await fetch("/api/v1/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-      const data = await res.json();
-      setMessages((m) => [
-        ...m,
-        {
-          role: "assistant",
-          text: res.ok ? data.answer : (data.error ?? "Something went wrong."),
-          sources: data.sources,
-        },
-      ]);
-    } catch {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", text: "Network error — please try again." },
-      ]);
-    } finally {
-      setBusy(false);
+  const send = useCallback(
+    async (q?: string) => {
+      const question = (q ?? input).trim();
+      if (!question || busy) return;
+      setInput("");
+      setMessages((m) => [...m, { role: "user", text: question }]);
+      setBusy(true);
+      try {
+        const res = await fetch("/api/v1/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+        const data = await res.json();
+        setMessages((m) => [
+          ...m,
+          {
+            role: "assistant",
+            text: res.ok ? data.answer : (data.error ?? "Something went wrong."),
+            sources: data.sources,
+          },
+        ]);
+      } catch {
+        setMessages((m) => [
+          ...m,
+          { role: "assistant", text: "Network error — please try again." },
+        ]);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [input, busy],
+  );
+
+  // Handed off from global search: /assistant?q=…
+  const handedOff = useRef(false);
+  useEffect(() => {
+    const q = params.get("q");
+    if (q && !handedOff.current) {
+      handedOff.current = true;
+      void send(q);
     }
-  }
+  }, [params, send]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">

@@ -3,6 +3,9 @@
 import {
   BarChart,
   Bar,
+  ComposedChart,
+  Line,
+  Legend,
   PieChart,
   Pie,
   Cell,
@@ -40,6 +43,38 @@ export function CustomerBar({ data }: { data: { name: string; value: number }[] 
         <Tooltip formatter={(v: number) => `₹${v.toLocaleString("en-IN")}`} />
         <Bar dataKey="value" fill="#6d44f5" radius={[0, 4, 4, 0]} />
       </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** 12-month trend: order value as bars, estimated profit overlaid as a line. */
+export function MonthlyTrend({
+  data,
+  showProfit = true,
+}: {
+  data: { month: string; value: number; profit: number }[];
+  showProfit?: boolean;
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={280}>
+      <ComposedChart data={data} margin={{ left: 4, right: 4 }}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        <XAxis dataKey="month" fontSize={11} />
+        <YAxis tickFormatter={(v: number) => `${(v / 100000).toFixed(0)}L`} fontSize={12} />
+        <Tooltip formatter={(v: number) => `₹${v.toLocaleString("en-IN")}`} />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Bar dataKey="value" name="Order Value" fill="#6d44f5" radius={[4, 4, 0, 0]} />
+        {showProfit && (
+          <Line
+            type="monotone"
+            dataKey="profit"
+            name="Est. Profit"
+            stroke="#34d399"
+            strokeWidth={2}
+            dot={false}
+          />
+        )}
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }

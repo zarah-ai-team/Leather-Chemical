@@ -146,7 +146,11 @@ export async function loadSnapshot(organizationId: string): Promise<Snapshot> {
         include: { lines: true },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.document.findMany({ where: { organizationId } }),
+      // Only documents with extracted text are useful to the assistant
+      prisma.document.findMany({
+        where: { organizationId, content: { not: null } },
+        select: { id: true, title: true, type: true, productId: true, content: true },
+      }),
     ]);
 
   return {
