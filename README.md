@@ -17,10 +17,13 @@ place, built on a production-grade, multi-tenant foundation.
 | **CRM** | `/customers` | Buyer profiles (GSTIN/PAN, credit), contacts, activity timeline, AI summary, follow-up flags, create/edit + log activity |
 | **Suppliers** | `/suppliers` | Vendor performance, AI insights (cheapest / fastest / most reliable / best quality), create/edit |
 | **Products** | `/products` | Catalog by category, cost/price/margin (cost hidden from roles without `costs:view`), price history on edit |
-| **Quotations** | `/quotations` | Auto-numbered (QUO-YYYY-NNN), line editor, status workflow, AI acceptance probability, **convert to order** |
-| **Orders** | `/orders` | 8-stage Kanban with full stage-transition history |
-| **AI Assistant** | `/assistant` | Rule-based engine over live data (no API key needed); Claude RAG planned — see `docs/05` |
+| **Quotations** | `/quotations` | Auto-numbered (QUO-YYYY-NNN), line editor, status workflow, AI acceptance probability, **convert to order**, printable PDF |
+| **Orders** | `/orders` | 8-stage Kanban plus order detail: line items, stage timeline, **invoices & payments** |
+| **Inventory** | `/inventory` | Stock per warehouse with reorder flags, Goods In/Out/Return/Adjustment movements |
+| **Import & Export** | `/imports` | Import customers/suppliers/products from CSV, Excel or **Tally XML** — auto field mapping, validation, duplicate detection, one-click undo; CSV export of any module |
+| **AI Assistant** | `/assistant` | Answers from your company data (no API key needed) **plus web search via Claude** for market/industry questions when `ANTHROPIC_API_KEY` is set |
 | **Audit Log** | `/audit` | Who / what / when / before / after / IP for every critical action |
+| **Team & Roles** | `/settings/users` | Provision users, assign roles, remove members (revokes sessions) |
 
 ## Quick start
 

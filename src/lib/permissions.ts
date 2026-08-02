@@ -31,6 +31,8 @@ export type Permission =
   | "assistant:use"
   | "costs:view"
   | "audit:view"
+  | "data:import"
+  | "data:export"
   | "settings:manage"
   | "users:manage";
 
@@ -58,6 +60,8 @@ const ALL: Permission[] = [
   "assistant:use",
   "costs:view",
   "audit:view",
+  "data:import",
+  "data:export",
   "settings:manage",
   "users:manage",
 ];
@@ -74,6 +78,7 @@ const VIEW_ALL: Permission[] = [
   "invoices:view",
   "assistant:use",
   "costs:view",
+  "data:export",
 ];
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
@@ -97,6 +102,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "invoices:view",
     "assistant:use",
     "costs:view",
+    "data:export",
   ],
   SALES_EXECUTIVE: [
     "dashboard:view",
@@ -109,6 +115,9 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "orders:view",
     "documents:view",
     "assistant:use",
+    // Can export their working lists; cost/margin columns are stripped
+    // automatically because this role lacks costs:view.
+    "data:export",
   ],
   ACCOUNTS: [
     "dashboard:view",
@@ -121,6 +130,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "payments:manage",
     "costs:view",
     "assistant:use",
+    "data:export",
   ],
   PURCHASE: [
     "dashboard:view",
@@ -133,6 +143,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "documents:view",
     "costs:view",
     "assistant:use",
+    "data:export",
   ],
   WAREHOUSE: [
     "orders:view",

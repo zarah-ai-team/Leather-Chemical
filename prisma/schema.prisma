@@ -32,6 +32,7 @@ model User {
   assignedCustomers Customer[] @relation("AssignedSalesperson")
   quotationsCreated Quotation[] @relation("QuotationCreatedBy")
   stageEvents   OrderStageEvent[]
+  importBatches ImportBatch[]
 
   @@map("user")
 }
@@ -104,6 +105,7 @@ model Organization {
   sequences     NumberSequence[]
   invoices      Invoice[]
   payments      Payment[]
+  importBatches ImportBatch[]
 }
 
 enum Role {
@@ -173,6 +175,7 @@ model Customer {
   preferredCategories ProductCategory[]
   annualPurchaseValue Decimal           @default(0) @db.Decimal(14, 2)
   assignedToId        String?
+  importBatchId       String? // set when created by the Import Centre
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
 
@@ -246,6 +249,7 @@ model Supplier {
   avgDeliveryDays  Int     @default(0)
   qualityRating    Decimal @default(0) @db.Decimal(3, 1) // 0.0 - 5.0
   reliabilityScore Int     @default(0) // 0 - 100 on-time %
+  importBatchId    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -267,6 +271,7 @@ model Product {
   sellingPrice   Decimal         @db.Decimal(14, 2)
   technicalSheet String?
   msds           String?
+  importBatchId  String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -597,6 +602,42 @@ model Document {
   customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, type])
+}
+
+// ---------------------------------------------------------------------------
+// Import Centre — every imported row is traceable and undoable by batch
+// ---------------------------------------------------------------------------
+
+enum ImportModule {
+  CUSTOMERS
+  SUPPLIERS
+  PRODUCTS
+}
+
+enum ImportStatus {
+  COMMITTED
+  UNDONE
+}
+
+model ImportBatch {
+  id             String       @id @default(cuid())
+  organizationId String
+  module         ImportModule
+  status         ImportStatus @default(COMMITTED)
+  fileName       String
+  sourceFormat   String // "csv" | "xlsx" | "tally-xml"
+  createdCount   Int          @default(0)
+  skippedCount   Int          @default(0)
+  errorCount     Int          @default(0)
+  mapping        Json?
+  createdById    String?
+  createdAt      DateTime     @default(now())
+  undoneAt       DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
 }
 
 model AuditLog {

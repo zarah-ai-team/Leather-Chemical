@@ -15,6 +15,7 @@ import {
   LogOut,
   Boxes,
   UserCog,
+  ArrowLeftRight,
 } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import type { Permission } from "@/lib/permissions";
@@ -29,6 +30,7 @@ const NAV: { href: string; label: string; icon: typeof Users; permission: Permis
   { href: "/inventory", label: "Inventory", icon: Boxes, permission: "inventory:view" },
   { href: "/assistant", label: "AI Assistant", icon: Bot, permission: "assistant:use" },
   { href: "/audit", label: "Audit Log", icon: ScrollText, permission: "audit:view" },
+  { href: "/imports", label: "Import & Export", icon: ArrowLeftRight, permission: "data:import" },
   { href: "/settings/users", label: "Team & Roles", icon: UserCog, permission: "users:manage" },
 ];
 
