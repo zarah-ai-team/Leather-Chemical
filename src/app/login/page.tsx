@@ -55,13 +55,15 @@ function LoginForm() {
             alt="Zarah AI"
             width={607}
             height={387}
-            className="h-4 w-auto"
+            className="h-8 w-auto"
             priority
             unoptimized
           />
         </div>
         <div className="relative flex-1 flex items-center">
-          <div className="text-white font-semibold text-5xl tracking-tight">ZarahFlow</div>
+          <div className="text-white font-semibold text-7xl tracking-tight">
+            Zarah<span className="text-brand-500 uppercase">flow</span>
+          </div>
         </div>
       </div>
 

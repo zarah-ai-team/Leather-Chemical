@@ -72,7 +72,7 @@ export default function Sidebar({
           alt="Zarah AI"
           width={607}
           height={387}
-          className="w-24 h-auto shrink-0"
+          className="w-20 h-auto shrink-0"
           unoptimized
           priority
         />
