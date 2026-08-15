@@ -48,18 +48,32 @@ function LoginForm() {
             backgroundSize: "28px 28px",
           }}
         />
-        <div className="relative flex flex-col items-center gap-4">
-          <Image src="/zarah-mark-ondark.png" alt="" width={96} height={96} priority unoptimized />
-          <div className="text-white font-semibold text-2xl tracking-tight">ZarahFlow</div>
+        <div className="relative">
+          <Image
+            src="/zarah-logo-ondark.png"
+            alt="Zarah AI"
+            width={607}
+            height={387}
+            className="w-64 h-auto"
+            priority
+            unoptimized
+          />
         </div>
       </div>
 
       {/* Form panel */}
       <div className="flex flex-1 items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-sm">
-          <div className="flex flex-col items-center gap-2 mb-8 lg:hidden">
-            <Image src="/zarah-mark-onlight.png" alt="" width={56} height={56} priority unoptimized />
-            <div className="font-semibold text-lg">ZarahFlow</div>
+          <div className="flex justify-center mb-8 lg:hidden">
+            <Image
+              src="/zarah-logo-onlight.png"
+              alt="Zarah AI"
+              width={608}
+              height={386}
+              className="w-48 h-auto"
+              priority
+              unoptimized
+            />
           </div>
 
           <div className="card p-8">
