@@ -60,8 +60,8 @@ function LoginForm() {
             unoptimized
           />
         </div>
-        <div className="relative flex-1 flex items-center">
-          <div className="text-white font-semibold text-7xl tracking-tight">
+        <div className="relative flex-1 flex items-center justify-center">
+          <div className="text-white font-semibold text-5xl tracking-tight">
             Zarah<span className="text-brand-500 uppercase">flow</span>
           </div>
         </div>
