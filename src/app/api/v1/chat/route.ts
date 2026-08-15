@@ -8,8 +8,12 @@ import {
 } from "@/server/services/webAssistant";
 import { chatSchema } from "@/lib/validation";
 import { rateLimit } from "@/server/ratelimit";
+import { AI_ENABLED } from "@/lib/flags";
 
 export async function POST(req: Request) {
+  if (!AI_ENABLED) {
+    return Response.json({ error: "The AI assistant isn't available yet" }, { status: 404 });
+  }
   try {
     const ctx = await requirePermission("assistant:use");
     if (!rateLimit(`chat:${ctx.userId}`, 30, 60_000)) {

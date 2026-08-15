@@ -91,7 +91,7 @@ export default async function QuotationsPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Link
                           href={`/quotations/${q.id}/print`}
-                          className="btn-ghost p-1.5 rounded text-slate-500 hover:text-brand-600"
+                          className="btn-ghost p-1.5 rounded text-slate-500 hover:text-brand-700"
                           title="Print / PDF"
                         >
                           <Printer size={15} />

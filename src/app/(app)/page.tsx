@@ -12,6 +12,7 @@ import {
   productMovement,
 } from "@/server/services/analytics";
 import { inr } from "@/lib/labels";
+import { AI_ENABLED } from "@/lib/flags";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export default async function DashboardPage() {
     receivables(ctx.organizationId),
   ]);
   const stats = dashboardStats(snap);
-  const insights = growthInsights(snap);
+  const insights = AI_ENABLED ? growthInsights(snap) : [];
   const byCategory = revenueByCategory(snap);
   const top = topCustomers(snap);
   const movement = productMovement(snap).slice(0, 8);
@@ -49,28 +50,30 @@ export default async function DashboardPage() {
         <StatCard label="Follow-ups Due" value={String(stats.followUpsDue)} accent="rose" />
       </div>
 
-      <Section title="AI Growth Advisor">
-        {insights.length === 0 ? (
-          <p className="text-sm text-slate-500">No insights right now — everything looks healthy.</p>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-3">
-            {insights.map((ins, i) => {
-              const style = INSIGHT_STYLE[ins.kind];
-              const Icon = style.icon;
-              return (
-                <div key={i} className={`rounded-xl border p-4 ${style.cls}`}>
-                  <div className={`flex items-center gap-2 font-medium text-sm ${style.text}`}>
-                    <Icon size={16} />
-                    {ins.title}
+      {AI_ENABLED && (
+        <Section title="AI Growth Advisor">
+          {insights.length === 0 ? (
+            <p className="text-sm text-slate-500">No insights right now — everything looks healthy.</p>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-3">
+              {insights.map((ins, i) => {
+                const style = INSIGHT_STYLE[ins.kind];
+                const Icon = style.icon;
+                return (
+                  <div key={i} className={`rounded-xl border p-4 ${style.cls}`}>
+                    <div className={`flex items-center gap-2 font-medium text-sm ${style.text}`}>
+                      <Icon size={16} />
+                      {ins.title}
+                    </div>
+                    <p className="text-sm text-slate-600 mt-1">{ins.detail}</p>
+                    <p className="text-xs text-slate-500 mt-2">→ {ins.action}</p>
                   </div>
-                  <p className="text-sm text-slate-600 mt-1">{ins.detail}</p>
-                  <p className="text-xs text-slate-500 mt-2">→ {ins.action}</p>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Section>
+                );
+              })}
+            </div>
+          )}
+        </Section>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-6 mt-6">
         <Section title="Revenue by Category">

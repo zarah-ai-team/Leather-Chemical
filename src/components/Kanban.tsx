@@ -81,7 +81,7 @@ export default function Kanban({
                   <div className="text-sm font-semibold mt-1">{c.value}</div>
                   {c.expectedDelivery && (
                     <div className="text-[11px] text-slate-400 mt-1">
-                      ETA {new Date(c.expectedDelivery).toLocaleDateString()}
+                      ETA {new Date(c.expectedDelivery).toLocaleDateString("en-IN")}
                     </div>
                   )}
                   {canAdvance && (

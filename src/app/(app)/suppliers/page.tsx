@@ -103,7 +103,7 @@ export default async function SuppliersPage() {
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/suppliers/${s.id}/edit`}
-                      className="text-brand-600 hover:underline text-xs font-medium"
+                      className="text-brand-700 hover:underline text-xs font-medium"
                     >
                       Edit
                     </Link>

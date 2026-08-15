@@ -59,7 +59,7 @@ export default function QuotationActions({
         </select>
       )}
       <button
-        className="btn-ghost p-1.5 rounded text-brand-600 hover:bg-brand-50 disabled:opacity-30"
+        className="btn-ghost p-1.5 rounded text-brand-700 hover:bg-brand-50 disabled:opacity-30"
         title="Convert to sales order"
         onClick={convert}
         disabled={busy}

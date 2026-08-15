@@ -7,27 +7,27 @@
 }
 
 body {
-  @apply bg-slate-50 text-slate-800;
+  @apply bg-paper-50 text-carbon-900;
 }
 
 .card {
-  @apply bg-white rounded-xl border border-slate-200 shadow-sm;
+  @apply bg-paper-0 rounded-xl border border-carbon-100 shadow-sm;
 }
 
 .btn {
   @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
 }
 .btn-primary {
-  @apply bg-brand-600 text-white hover:bg-brand-700;
+  @apply bg-brand-500 text-carbon-900 font-semibold hover:bg-brand-600;
 }
 .btn-ghost {
-  @apply text-slate-600 hover:bg-slate-100;
+  @apply text-carbon-900 hover:bg-carbon-50;
 }
 .badge {
   @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
 }
 .input {
-  @apply w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40;
+  @apply w-full px-3 py-2.5 rounded-lg border border-carbon-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50;
 }
 
 /* Printable documents (quotation PDF etc.): hide the app chrome */

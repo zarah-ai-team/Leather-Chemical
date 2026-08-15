@@ -25,7 +25,7 @@ export function StatCard({
   accent?: "brand" | "green" | "amber" | "rose" | "slate";
 }) {
   const accents: Record<string, string> = {
-    brand: "text-brand-600",
+    brand: "text-brand-700",
     green: "text-emerald-600",
     amber: "text-amber-600",
     rose: "text-rose-600",

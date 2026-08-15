@@ -5,12 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/ensure-build.mjs && next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "db:bootstrap": "tsx prisma/bootstrap-org.ts",
+    "db:demo": "tsx prisma/demo-data.ts",
     "db:local": "tsx scripts/local-db.ts",
     "db:studio": "prisma studio"
   },

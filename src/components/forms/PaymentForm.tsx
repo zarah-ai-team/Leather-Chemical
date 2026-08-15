@@ -45,7 +45,7 @@ export default function PaymentForm({
   if (!open) {
     return (
       <button
-        className="text-xs font-medium text-brand-600 hover:underline"
+        className="text-xs font-medium text-brand-700 hover:underline"
         onClick={() => setOpen(true)}
       >
         Record payment

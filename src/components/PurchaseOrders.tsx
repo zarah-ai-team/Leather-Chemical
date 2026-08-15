@@ -338,10 +338,10 @@ export default function PurchaseOrders({
                     </div>
                     <div className="text-sm text-slate-600 mt-0.5">{po.supplierName}</div>
                     <div className="text-xs text-slate-400">
-                      Created {new Date(po.createdAt).toLocaleDateString()}
+                      Created {new Date(po.createdAt).toLocaleDateString("en-IN")}
                       {po.createdBy && ` by ${po.createdBy}`}
                       {po.expectedDate &&
-                        ` · expected ${new Date(po.expectedDate).toLocaleDateString()}`}
+                        ` · expected ${new Date(po.expectedDate).toLocaleDateString("en-IN")}`}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

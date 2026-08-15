@@ -327,7 +327,7 @@ export default function DocumentsManager({
                     </td>
                     <td className="py-2.5 text-right text-slate-500">{humanSize(d.sizeBytes)}</td>
                     <td className="py-2.5 text-slate-500 text-xs">
-                      {new Date(d.uploadedAt).toLocaleDateString()}
+                      {new Date(d.uploadedAt).toLocaleDateString("en-IN")}
                       {d.uploadedBy && <div className="text-slate-400">{d.uploadedBy}</div>}
                     </td>
                     <td className="py-2.5">
@@ -337,7 +337,7 @@ export default function DocumentsManager({
                             href={`/api/v1/documents/${d.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="btn-ghost p-1.5 rounded text-slate-500 hover:text-brand-600"
+                            className="btn-ghost p-1.5 rounded text-slate-500 hover:text-brand-700"
                             title="Open / download"
                           >
                             <Download size={15} />

@@ -448,7 +448,7 @@ export default function ImportCentre({
                 {batches.map((b) => (
                   <tr key={b.id} className="border-b border-slate-100">
                     <td className="py-2 text-slate-500 whitespace-nowrap">
-                      {new Date(b.createdAt).toLocaleString()}
+                      {new Date(b.createdAt).toLocaleString("en-IN")}
                     </td>
                     <td className="py-2">
                       <span className="font-medium">{b.fileName}</span>

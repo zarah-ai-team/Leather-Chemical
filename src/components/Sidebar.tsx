@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -10,7 +11,6 @@ import {
   FileText,
   KanbanSquare,
   Bot,
-  FlaskConical,
   ScrollText,
   LogOut,
   Boxes,
@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import type { Permission } from "@/lib/permissions";
+import { AI_ENABLED } from "@/lib/flags";
 
 const NAV: { href: string; label: string; icon: typeof Users; permission: Permission }[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, permission: "dashboard:view" },
@@ -34,7 +35,9 @@ const NAV: { href: string; label: string; icon: typeof Users; permission: Permis
   { href: "/inventory", label: "Inventory", icon: Boxes, permission: "inventory:view" },
   { href: "/documents", label: "Documents", icon: FolderOpen, permission: "documents:view" },
   { href: "/reports", label: "Reports", icon: BarChart3, permission: "dashboard:view" },
-  { href: "/assistant", label: "AI Assistant", icon: Bot, permission: "assistant:use" },
+  ...(AI_ENABLED
+    ? [{ href: "/assistant", label: "AI Assistant", icon: Bot, permission: "assistant:use" as Permission }]
+    : []),
   { href: "/audit", label: "Audit Log", icon: ScrollText, permission: "audit:view" },
   { href: "/imports", label: "Import & Export", icon: ArrowLeftRight, permission: "data:import" },
   { href: "/settings/users", label: "Team & Roles", icon: UserCog, permission: "users:manage" },
@@ -62,14 +65,12 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0">
-      <div className="px-5 py-5 border-b border-slate-200 flex items-center gap-2">
-        <div className="w-9 h-9 rounded-lg bg-brand-600 text-white grid place-items-center">
-          <FlaskConical size={20} />
-        </div>
+    <aside className="w-64 shrink-0 bg-carbon-900 text-white flex flex-col h-screen sticky top-0">
+      <div className="px-5 py-5 border-b border-white/10 flex items-center gap-2">
+        <Image src="/zarah-mark-ondark.png" alt="" width={32} height={32} className="shrink-0" unoptimized />
         <div>
-          <div className="font-semibold leading-tight">LeatherChem</div>
-          <div className="text-xs text-slate-500">{organizationName}</div>
+          <div className="font-semibold leading-tight">ZarahFlow</div>
+          <div className="text-xs text-white/50">{organizationName}</div>
         </div>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -80,24 +81,27 @@ export default function Sidebar({
             <Link
               key={n.href}
               href={n.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                active ? "bg-brand-50 text-brand-700" : "text-slate-600 hover:bg-slate-100"
+              className={`relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                active ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/5 hover:text-white"
               }`}
             >
+              {active && (
+                <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-brand-500" />
+              )}
               <Icon size={18} />
               {n.label}
             </Link>
           );
         })}
       </nav>
-      <div className="p-3 border-t border-slate-200 flex items-center justify-between gap-2">
+      <div className="p-3 border-t border-white/10 flex items-center justify-between gap-2">
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{userName}</div>
-          <div className="text-xs text-slate-400">{roleLabel}</div>
+          <div className="text-xs text-white/40">{roleLabel}</div>
         </div>
         <button
           onClick={handleSignOut}
-          className="btn-ghost p-2 rounded-lg text-slate-500 hover:text-rose-600"
+          className="p-2 rounded-lg text-white/50 hover:bg-white/5 hover:text-rose-400 transition-colors"
           title="Sign out"
         >
           <LogOut size={16} />

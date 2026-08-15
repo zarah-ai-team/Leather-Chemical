@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Bot, FileText, Globe, Send } from "lucide-react";
 import { PageHeader } from "@/components/ui";
+import { AI_ENABLED } from "@/lib/flags";
 
 interface Msg {
   role: "user" | "assistant";
@@ -24,6 +25,19 @@ const SAMPLES = [
 ];
 
 export default function AssistantPage() {
+  if (!AI_ENABLED) {
+    return (
+      <div>
+        <PageHeader title="AI Assistant" subtitle="Coming soon" />
+        <div className="card p-8 text-center">
+          <Bot size={28} className="mx-auto text-slate-300 mb-3" />
+          <p className="text-sm text-slate-500">
+            The AI assistant is being integrated and isn&apos;t available yet.
+          </p>
+        </div>
+      </div>
+    );
+  }
   return (
     <Suspense>
       <Assistant />
@@ -109,7 +123,7 @@ function Assistant() {
               }`}
             >
               {m.role === "assistant" && (
-                <div className="flex items-center gap-1.5 text-xs font-medium text-brand-600 mb-1">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-brand-700 mb-1">
                   <Bot size={14} /> Assistant
                 </div>
               )}

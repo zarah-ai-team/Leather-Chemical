@@ -15,6 +15,7 @@ import {
   Search,
   ShoppingCart,
 } from "lucide-react";
+import { AI_ENABLED } from "@/lib/flags";
 
 interface Hit {
   id: string;
@@ -118,7 +119,7 @@ export default function GlobalSearch() {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (hits[active]) go(hits[active]);
-      else if (query.trim()) {
+      else if (AI_ENABLED && query.trim()) {
         setOpen(false);
         router.push(`/assistant?q=${encodeURIComponent(query)}`);
       }
@@ -174,15 +175,17 @@ export default function GlobalSearch() {
               ) : hits.length === 0 && !loading ? (
                 <div className="px-4 py-6 text-center">
                   <p className="text-sm text-slate-500">No matches for “{query}”.</p>
-                  <button
-                    className="btn btn-ghost text-sm mt-2 mx-auto"
-                    onClick={() => {
-                      setOpen(false);
-                      router.push(`/assistant?q=${encodeURIComponent(query)}`);
-                    }}
-                  >
-                    <Bot size={14} /> Ask the AI assistant instead
-                  </button>
+                  {AI_ENABLED && (
+                    <button
+                      className="btn btn-ghost text-sm mt-2 mx-auto"
+                      onClick={() => {
+                        setOpen(false);
+                        router.push(`/assistant?q=${encodeURIComponent(query)}`);
+                      }}
+                    >
+                      <Bot size={14} /> Ask the AI assistant instead
+                    </button>
+                  )}
                 </div>
               ) : (
                 <ul>

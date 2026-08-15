@@ -85,7 +85,7 @@ export default async function ProductsPage() {
                           <td className="py-2.5 text-right">
                             <Link
                               href={`/products/${p.id}/edit`}
-                              className="text-brand-600 hover:underline text-xs font-medium"
+                              className="text-brand-700 hover:underline text-xs font-medium"
                             >
                               Edit
                             </Link>
