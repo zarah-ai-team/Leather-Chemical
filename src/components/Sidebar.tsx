@@ -66,17 +66,19 @@ export default function Sidebar({
 
   return (
     <aside className="w-64 shrink-0 bg-carbon-900 text-white flex flex-col h-screen sticky top-0">
-      <div className="px-5 py-5 border-b border-white/10">
+      <div className="px-4 py-4 border-b border-white/10 flex items-center gap-2.5">
         <Image
           src="/zarah-logo-ondark.png"
           alt="Zarah AI"
           width={607}
           height={387}
-          className="w-36 h-auto"
+          className="w-24 h-auto shrink-0"
           unoptimized
           priority
         />
-        <div className="text-xs text-white/50 mt-1.5">{organizationName}</div>
+        <span className="min-w-0 inline-flex items-center px-2 py-1 rounded-md bg-brand-500/15 text-brand-500 text-xs font-semibold truncate">
+          {organizationName}
+        </span>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {items.map((n) => {

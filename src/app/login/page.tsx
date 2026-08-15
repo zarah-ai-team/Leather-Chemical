@@ -39,7 +39,7 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex bg-paper-50">
       {/* Brand panel — hidden on small screens */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-carbon-900 items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-carbon-900 flex-col p-10">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.08]"
           style={{
@@ -48,16 +48,20 @@ function LoginForm() {
             backgroundSize: "28px 28px",
           }}
         />
-        <div className="relative">
+        <div className="relative flex items-center gap-2 text-white/40 text-xs">
+          <span>Powered by</span>
           <Image
             src="/zarah-logo-ondark.png"
             alt="Zarah AI"
             width={607}
             height={387}
-            className="w-64 h-auto"
+            className="h-4 w-auto"
             priority
             unoptimized
           />
+        </div>
+        <div className="relative flex-1 flex items-center">
+          <div className="text-white font-semibold text-5xl tracking-tight">ZarahFlow</div>
         </div>
       </div>
 
