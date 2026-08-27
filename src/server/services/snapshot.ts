@@ -112,7 +112,31 @@ export interface Snapshot {
   docs: SnapDoc[];
 }
 
-export async function loadSnapshot(organizationId: string): Promise<Snapshot> {
+/**
+ * Per-org TTL cache. The snapshot now spans years of migrated history, so
+ * rebuilding it from Neon on every dashboard render is the dominant page
+ * cost. Analytics tolerate up to a minute of staleness; writes simply age
+ * out. Lives per serverless instance — warm invocations hit the cache,
+ * cold starts rebuild.
+ */
+const SNAPSHOT_TTL_MS = 60_000;
+const snapshotCache = new Map<string, { at: number; promise: Promise<Snapshot> }>();
+
+export function invalidateSnapshot(organizationId: string) {
+  snapshotCache.delete(organizationId);
+}
+
+export function loadSnapshot(organizationId: string): Promise<Snapshot> {
+  const hit = snapshotCache.get(organizationId);
+  if (hit && Date.now() - hit.at < SNAPSHOT_TTL_MS) return hit.promise;
+  const promise = buildSnapshot(organizationId);
+  snapshotCache.set(organizationId, { at: Date.now(), promise });
+  // A failed build must not poison the cache for the whole TTL.
+  promise.catch(() => snapshotCache.delete(organizationId));
+  return promise;
+}
+
+async function buildSnapshot(organizationId: string): Promise<Snapshot> {
   const [customers, suppliers, products, quotations, orders, docs] =
     await Promise.all([
       prisma.customer.findMany({

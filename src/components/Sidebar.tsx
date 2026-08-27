@@ -11,10 +11,8 @@ import {
   FileText,
   KanbanSquare,
   Bot,
-  ScrollText,
   LogOut,
   Boxes,
-  UserCog,
   ArrowLeftRight,
   FolderOpen,
   BarChart3,
@@ -38,9 +36,7 @@ const NAV: { href: string; label: string; icon: typeof Users; permission: Permis
   ...(AI_ENABLED
     ? [{ href: "/assistant", label: "AI Assistant", icon: Bot, permission: "assistant:use" as Permission }]
     : []),
-  { href: "/audit", label: "Audit Log", icon: ScrollText, permission: "audit:view" },
   { href: "/imports", label: "Import & Export", icon: ArrowLeftRight, permission: "data:import" },
-  { href: "/settings/users", label: "Team & Roles", icon: UserCog, permission: "users:manage" },
 ];
 
 export default function Sidebar({
