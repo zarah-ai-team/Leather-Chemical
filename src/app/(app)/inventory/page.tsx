@@ -53,7 +53,7 @@ export default async function InventoryPage() {
               No stock recorded yet — record a Goods In movement to get started.
             </p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
                   <th className="py-2">Product</th>
@@ -82,7 +82,7 @@ export default async function InventoryPage() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Section>
 
@@ -90,7 +90,7 @@ export default async function InventoryPage() {
           {movements.length === 0 ? (
             <p className="text-sm text-slate-500">No movements yet.</p>
           ) : (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
                   <th className="py-2">When</th>
@@ -117,7 +117,7 @@ export default async function InventoryPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
         </Section>
       </div>

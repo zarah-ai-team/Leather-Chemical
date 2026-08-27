@@ -19,10 +19,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         permissions={permissions}
       />
       <main className="flex-1 min-w-0 min-h-screen">
-        <header className="sticky top-0 z-30 bg-slate-50/80 backdrop-blur border-b border-slate-200 px-6 lg:px-8 py-3 flex justify-end print:hidden">
+        <header className="sticky top-0 z-30 bg-slate-50/80 backdrop-blur border-b border-slate-200 pl-14 pr-4 sm:pr-6 lg:px-8 py-3 flex justify-end print:hidden">
           <GlobalSearch />
         </header>
-        <div className="p-6 lg:p-8">{children}</div>
+        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );

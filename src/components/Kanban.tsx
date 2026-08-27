@@ -28,9 +28,12 @@ const STAGE_COLOR: Record<OrderStage, string> = {
 
 export default function Kanban({
   initial,
+  totals,
   canAdvance,
 }: {
   initial: KanbanCard[];
+  /** True per-stage counts — the card list itself is capped server-side. */
+  totals?: Record<string, number>;
   canAdvance: boolean;
 }) {
   const [cards, setCards] = useState(initial);
@@ -57,13 +60,14 @@ export default function Kanban({
     <div className="flex gap-3 overflow-x-auto pb-4">
       {ORDER_STAGES.map((stage) => {
         const items = cards.filter((c) => c.stage === stage);
+        const total = totals?.[stage] ?? items.length;
         return (
-          <div key={stage} className="w-64 shrink-0">
+          <div key={stage} className="w-60 sm:w-64 shrink-0">
             <div className="flex items-center justify-between mb-2 px-1">
               <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
                 {ORDER_STAGE_LABELS[stage]}
               </h3>
-              <span className="badge bg-slate-100 text-slate-500">{items.length}</span>
+              <span className="badge bg-slate-100 text-slate-500">{total}</span>
             </div>
             <div className="space-y-2 min-h-[60px]">
               {items.map((c) => (
@@ -106,6 +110,11 @@ export default function Kanban({
                   )}
                 </div>
               ))}
+              {total > items.length && (
+                <p className="text-[11px] text-slate-400 text-center py-1">
+                  + {total - items.length} more (use search to find older orders)
+                </p>
+              )}
             </div>
           </div>
         );

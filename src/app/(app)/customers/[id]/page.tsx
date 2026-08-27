@@ -153,7 +153,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
             {c.orders.length === 0 ? (
               <p className="text-sm text-slate-500">No orders yet.</p>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto"><table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
                     <th className="py-2">Number</th>
@@ -170,7 +170,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )}
           </Section>
 
@@ -178,7 +178,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
             {c.quotations.length === 0 ? (
               <p className="text-sm text-slate-500">No quotations yet.</p>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto"><table className="w-full text-sm">
                 <tbody>
                   {c.quotations.map((q) => (
                     <tr key={q.id} className="border-b border-slate-100">
@@ -190,7 +190,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )}
           </Section>
         </div>

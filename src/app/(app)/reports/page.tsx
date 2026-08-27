@@ -496,7 +496,7 @@ export default async function ReportsPage() {
                 <h3 className="text-xs uppercase tracking-wide text-slate-500 mb-2">
                   Quotations by status
                 </h3>
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto"><table className="w-full text-sm">
                   <thead>
                     <tr className={TH}>
                       <th className="py-2">Status</th>
@@ -513,13 +513,13 @@ export default async function ReportsPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
               <div>
                 <h3 className="text-xs uppercase tracking-wide text-slate-500 mb-2">
                   Orders by stage
                 </h3>
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto"><table className="w-full text-sm">
                   <thead>
                     <tr className={TH}>
                       <th className="py-2">Stage</th>
@@ -536,7 +536,7 @@ export default async function ReportsPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             </div>
           </Section>

@@ -34,7 +34,7 @@ export default async function ProductsPage() {
           if (items.length === 0) return null;
           return (
             <Section key={cat} title={CATEGORY_LABELS[cat]}>
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto"><table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
                     <th className="py-2">Product</th>
@@ -95,7 +95,7 @@ export default async function ProductsPage() {
                     );
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </Section>
           );
         })}

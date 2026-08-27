@@ -66,7 +66,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Section title="Line Items">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto"><table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
                   <th className="py-2">Product</th>
@@ -95,7 +95,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                   <td className="py-2 text-right font-semibold">{inr(total)}</td>
                 </tr>
               </tbody>
-            </table>
+            </table></div>
           </Section>
 
           {canViewInvoices && (

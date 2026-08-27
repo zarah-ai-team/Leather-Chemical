@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -17,6 +18,8 @@ import {
   FolderOpen,
   BarChart3,
   ShoppingCart,
+  Menu,
+  X,
 } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import type { Permission } from "@/lib/permissions";
@@ -52,7 +55,11 @@ export default function Sidebar({
 }) {
   const path = usePathname();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const items = NAV.filter((n) => permissions.includes(n.permission));
+
+  // Close the mobile drawer whenever navigation happens.
+  useEffect(() => setOpen(false), [path]);
 
   async function handleSignOut() {
     await signOut();
@@ -61,7 +68,35 @@ export default function Sidebar({
   }
 
   return (
-    <aside className="w-64 shrink-0 bg-carbon-900 text-white flex flex-col h-screen sticky top-0">
+    <>
+      {/* Mobile: hamburger over the top bar + slide-in drawer with overlay */}
+      <button
+        onClick={() => setOpen(true)}
+        className="lg:hidden fixed top-2.5 left-3 z-40 p-2 rounded-lg bg-carbon-900 text-white shadow-md print:hidden"
+        aria-label="Open menu"
+      >
+        <Menu size={18} />
+      </button>
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+          onClick={() => setOpen(false)}
+          aria-hidden
+        />
+      )}
+      <aside
+        className={`bg-carbon-900 text-white flex flex-col print:hidden
+          fixed inset-y-0 left-0 z-50 w-64 h-full transform transition-transform duration-200 ease-out
+          ${open ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0 lg:static lg:h-screen lg:sticky lg:top-0 lg:shrink-0 lg:transform-none lg:transition-none`}
+      >
+        <button
+          onClick={() => setOpen(false)}
+          className="lg:hidden absolute top-3 right-3 p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10"
+          aria-label="Close menu"
+        >
+          <X size={18} />
+        </button>
       <div className="px-4 py-4 border-b border-white/10 flex items-center gap-2.5">
         <Image
           src="/zarah-logo-ondark.png"
@@ -110,6 +145,7 @@ export default function Sidebar({
           <LogOut size={16} />
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

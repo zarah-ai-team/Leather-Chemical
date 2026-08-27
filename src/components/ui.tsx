@@ -3,9 +3,9 @@ import { QUOTATION_STATUS_LABELS } from "@/lib/labels";
 
 export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 mb-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+    <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 mb-6">
+      <div className="min-w-0">
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">{title}</h1>
         {subtitle && <p className="text-slate-500 mt-1 text-sm">{subtitle}</p>}
       </div>
       {action}
