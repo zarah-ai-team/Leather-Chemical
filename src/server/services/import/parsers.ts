@@ -40,6 +40,41 @@ function parseSheet(buffer: Buffer, format: "csv" | "xlsx"): ParsedFile {
 }
 
 /**
+ * Find a master's postal address wherever Tally buried it.
+ *
+ * Ledgers carry it at LEDGERMAILINGDETAILS.LIST > ADDRESS.LIST > ADDRESS, but
+ * older exports put ADDRESS.LIST straight on the entity. Rather than encode
+ * both paths, walk the subtree and take the first ADDRESS.LIST that has lines.
+ */
+function findAddress(node: unknown, text_: (v: unknown) => string, depth = 0): string {
+  if (!node || typeof node !== "object" || depth > 4) return "";
+  const o = node as Record<string, unknown>;
+  for (const [key, value] of Object.entries(o)) {
+    if (key.toUpperCase() === "ADDRESS.LIST" && value && typeof value === "object") {
+      // A single ledger can have several ADDRESS.LIST blocks; the first with
+      // content wins.
+      for (const blk of Array.isArray(value) ? value : [value]) {
+        if (!blk || typeof blk !== "object") continue;
+        const lines = (blk as Record<string, unknown>).ADDRESS;
+        const joined = (Array.isArray(lines) ? lines : [lines])
+          .map((l) => text_(l))
+          .filter(Boolean)
+          .join(", ");
+        if (joined) return joined;
+      }
+    }
+  }
+  // Not at this level — recurse into children.
+  for (const value of Object.values(o)) {
+    for (const child of Array.isArray(value) ? value : [value]) {
+      const found = findAddress(child, text_, depth + 1);
+      if (found) return found;
+    }
+  }
+  return "";
+}
+
+/**
  * Tally master XML export (Ledgers or Stock Items). Tally nests everything
  * under ENVELOPE > BODY > ... > TALLYMESSAGE; we flatten the entries we
  * understand into flat rows with Tally's own field names as headers.
@@ -107,6 +142,10 @@ function parseTallyXml(text: string): ParsedFile {
         const e = ent as Record<string, unknown>;
         const row: Record<string, string> = {};
 
+        // Which Tally entity produced this row. Downstream filtering relies on
+        // it so a Ledger can never be imported as a Product (or vice versa).
+        row.TALLYENTITY = entityKey;
+
         // Name lives on the NAME attribute or a NAME child
         row.NAME = text_(e["@_NAME"]) || text_(e.NAME) || text_(e.LEDGERNAME);
 
@@ -115,14 +154,11 @@ function parseTallyXml(text: string): ParsedFile {
           const value = text_(v);
           if (value) row[k.toUpperCase()] = value;
         }
-        // Flatten the common nested address list
-        const addr = e["ADDRESS.LIST"] ?? e["ADDRESS"];
-        if (addr && typeof addr === "object") {
-          const a = addr as Record<string, unknown>;
-          const lines = Array.isArray(a.ADDRESS) ? a.ADDRESS : [a.ADDRESS];
-          const joined = lines.map((l) => text_(l)).filter(Boolean).join(", ");
-          if (joined) row.ADDRESS = joined;
-        }
+        // Flatten the nested address list. Tally nests a ledger's postal address
+        // under LEDGERMAILINGDETAILS.LIST > ADDRESS.LIST > ADDRESS, so a
+        // top-level lookup finds nothing on a real masters export.
+        const joined = findAddress(e, text_);
+        if (joined) row.ADDRESS = joined;
         if (!row.NAME) continue;
         Object.keys(row).forEach((h) => headerSet.add(h));
         rows.push(row);
@@ -143,6 +179,42 @@ function parseTallyXml(text: string): ParsedFile {
   });
 
   return { headers, rows: normalised, format: "tally-xml" };
+}
+
+/**
+ * Restrict a Tally export to the entities that belong in one module.
+ *
+ * A Tally masters export interleaves LEDGER and STOCKITEM entries in a single
+ * file, so without this every module sees every row — stock items get created
+ * as customers, customers as suppliers. Ledgers are further split by their
+ * PARENT group: "Sundry Debtors" are customers, "Sundry Creditors" suppliers.
+ *
+ * The group test is only applied when the export actually uses those groups;
+ * a file with custom group names falls back to offering all ledgers rather
+ * than silently importing nothing.
+ *
+ * No-op for CSV/XLSX, which the user maps by hand.
+ */
+export function filterTallyRows(parsed: ParsedFile, module: string): ParsedFile {
+  if (parsed.format !== "tally-xml") return parsed;
+
+  const entityOf = (r: Record<string, string>) => (r.TALLYENTITY ?? "").toUpperCase();
+  const parentOf = (r: Record<string, string>) => (r.PARENT ?? "").toLowerCase();
+
+  if (module === "PRODUCTS") {
+    return { ...parsed, rows: parsed.rows.filter((r) => entityOf(r) === "STOCKITEM") };
+  }
+
+  const ledgers = parsed.rows.filter((r) => entityOf(r) === "LEDGER");
+  const wanted = module === "CUSTOMERS" ? "debtor" : "creditor";
+  const opposite = module === "CUSTOMERS" ? "creditor" : "debtor";
+
+  const matched = ledgers.filter((r) => parentOf(r).includes(wanted));
+  if (matched.length > 0) return { ...parsed, rows: matched };
+
+  // Export doesn't use the standard groups — offer every ledger except the
+  // ones clearly belonging to the other side.
+  return { ...parsed, rows: ledgers.filter((r) => !parentOf(r).includes(opposite)) };
 }
 
 export function parseImportFile(fileName: string, buffer: Buffer): ParsedFile {

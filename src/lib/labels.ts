@@ -20,6 +20,12 @@ export const CATEGORY_LABELS: Record<ProductCategory, string> = {
   BINDERS: "Binders",
   FINISHING_CHEMICALS: "Finishing Chemicals",
   RETANNING_CHEMICALS: "Retanning Chemicals",
+  ADHESIVE: "Adhesive",
+  TAPES: "Tapes",
+  SHEETS: "Sheets",
+  PACKING_MATERIAL: "Packing Material",
+  BAGS: "Bags",
+  MACHINERY: "Machinery",
 };
 export const PRODUCT_CATEGORIES = Object.keys(
   CATEGORY_LABELS,

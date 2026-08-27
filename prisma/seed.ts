@@ -91,6 +91,12 @@ const CATEGORY_WORD: Record<ProductCategory, string> = {
   BINDERS: "binding",
   FINISHING_CHEMICALS: "finishing",
   RETANNING_CHEMICALS: "retanning",
+  ADHESIVE: "bonding",
+  TAPES: "taping",
+  SHEETS: "sheeting",
+  PACKING_MATERIAL: "packing",
+  BAGS: "bagging",
+  MACHINERY: "machining",
 };
 
 /**

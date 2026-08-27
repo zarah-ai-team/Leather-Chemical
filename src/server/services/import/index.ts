@@ -2,7 +2,7 @@ import type { ImportModule, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { AppContext } from "@/server/context";
 import { audit } from "@/server/audit";
-import { parseImportFile, type ParsedFile } from "./parsers";
+import { parseImportFile, filterTallyRows, type ParsedFile } from "./parsers";
 import { IMPORT_MODULES, autoMap, rowSchemaFor } from "./schemas";
 
 /**
@@ -101,7 +101,9 @@ export async function buildPreview(
   buffer: Buffer,
   mappingOverride?: Record<string, string>,
 ): Promise<ImportPreview> {
-  const parsed = parseImportFile(fileName, buffer);
+  // Tally exports interleave Ledgers and Stock Items — keep only the entities
+  // that belong in this module before anything is mapped or validated.
+  const parsed = filterTallyRows(parseImportFile(fileName, buffer), module);
   const mapping = mappingOverride ?? autoMap(module, parsed.headers);
   const schema = rowSchemaFor(module);
   const def = IMPORT_MODULES[module];

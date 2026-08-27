@@ -8,3 +8,13 @@ next-env.d.ts
 
 .vercel
 .pgdata
+
+# Tally migration source data — never commit business data
+data-migration/
+tally-restore/
+tally-data/
+exports/
+dev-server.log
+
+# one-shot provisioning script with a hardcoded credential — keep local
+scripts/provision-lakshay.ts

@@ -14,7 +14,17 @@
     "db:bootstrap": "tsx prisma/bootstrap-org.ts",
     "db:demo": "tsx prisma/demo-data.ts",
     "db:local": "tsx scripts/local-db.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:clear": "tsx scripts/clear-demo-data.ts",
+    "db:reset-password": "tsx scripts/reset-passwords.ts",
+    "db:cleanup-duplicates": "tsx scripts/cleanup-duplicates.ts",
+    "db:import-vouchers": "tsx scripts/import-tally-vouchers.ts",
+    "db:tally-fetch": "tsx scripts/tally-fetch.ts",
+    "db:tally-fetch-vouchers": "tsx scripts/tally-fetch-vouchers.ts",
+    "db:import-masters": "tsx scripts/migrate-tally-masters.ts",
+    "db:reconcile-import": "tsx scripts/reconcile-tally-import.ts",
+    "db:validate-import": "tsx scripts/validate-tally-import.ts",
+    "db:clear-transactions": "tsx scripts/clear-transactions.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

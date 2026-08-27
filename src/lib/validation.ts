@@ -30,6 +30,7 @@ export const customerSchema = z.object({
       z.enum([
         "FATLIQUORS", "PIGMENTS", "DYES", "WAXES", "BINDERS",
         "FINISHING_CHEMICALS", "RETANNING_CHEMICALS",
+        "ADHESIVE", "TAPES", "SHEETS", "PACKING_MATERIAL", "BAGS", "MACHINERY",
       ]),
     )
     .default([]),
@@ -68,6 +69,7 @@ export const productSchema = z.object({
   category: z.enum([
     "FATLIQUORS", "PIGMENTS", "DYES", "WAXES", "BINDERS",
     "FINISHING_CHEMICALS", "RETANNING_CHEMICALS",
+    "ADHESIVE", "TAPES", "SHEETS", "PACKING_MATERIAL", "BAGS", "MACHINERY",
   ]),
   unit: z.string().trim().min(1).max(20).default("kg"),
   hsnCode: z.string().trim().max(20).optional().or(z.literal("")),
