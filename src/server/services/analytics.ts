@@ -15,6 +15,38 @@ import type {
 
 export const FOLLOW_UP_DAYS = 45;
 
+/** Indian financial year label for a date: 15 Apr 2024 -> "2024-25". */
+export function financialYearLabel(d: Date): string {
+  const y = d.getFullYear();
+  const start = d.getMonth() >= 3 ? y : y - 1;
+  return `${start}-${String((start + 1) % 100).padStart(2, "0")}`;
+}
+
+/** Distinct financial years present in the org's orders, newest first. */
+export function listFinancialYears(snap: Snapshot): string[] {
+  const set = new Set<string>();
+  for (const o of snap.orders) set.add(financialYearLabel(o.createdAt));
+  return [...set].sort().reverse();
+}
+
+/**
+ * Restrict a snapshot's flow data (orders, quotations) to one financial
+ * year (label like "2024-25"). Masters and documents stay untouched, so
+ * customer/product/supplier counts remain the live totals.
+ */
+export function filterSnapshotByFY(snap: Snapshot, fy?: string): Snapshot {
+  if (!fy || fy === "all" || !/^\d{4}-\d{2}$/.test(fy)) return snap;
+  const startYear = Number(fy.slice(0, 4));
+  const from = new Date(startYear, 3, 1);
+  const to = new Date(startYear + 1, 3, 1);
+  const inFy = (d: Date) => d >= from && d < to;
+  return {
+    ...snap,
+    orders: snap.orders.filter((o) => inFy(o.createdAt)),
+    quotations: snap.quotations.filter((q) => inFy(q.createdAt)),
+  };
+}
+
 export function orderValue(o: SnapOrder | SnapQuotation): number {
   return o.lines.reduce((s, l) => s + l.qty * l.unitPrice, 0);
 }

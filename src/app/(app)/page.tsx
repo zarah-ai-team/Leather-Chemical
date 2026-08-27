@@ -4,12 +4,15 @@ import { CategoryPie, CustomerBar, ProductBar } from "@/components/Charts";
 import { pageContext } from "@/server/context";
 import { loadSnapshot } from "@/server/services/snapshot";
 import { receivables } from "@/server/services/invoices";
+import Link from "next/link";
 import {
   dashboardStats,
   growthInsights,
   revenueByCategory,
   topCustomers,
   productMovement,
+  listFinancialYears,
+  filterSnapshotByFY,
 } from "@/server/services/analytics";
 import { inr } from "@/lib/labels";
 import { AI_ENABLED } from "@/lib/flags";
@@ -23,17 +26,25 @@ const INSIGHT_STYLE = {
   pricing: { icon: Tag, cls: "border-blue-200 bg-blue-50", text: "text-blue-700" },
 } as const;
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: { fy?: string };
+}) {
   const ctx = await pageContext("dashboard:view");
-  const [snap, outstanding] = await Promise.all([
+  const [fullSnap, outstanding] = await Promise.all([
     loadSnapshot(ctx.organizationId),
     receivables(ctx.organizationId),
   ]);
+  const years = listFinancialYears(fullSnap);
+  const fy = searchParams?.fy && years.includes(searchParams.fy) ? searchParams.fy : "all";
+  const snap = filterSnapshotByFY(fullSnap, fy);
   const stats = dashboardStats(snap);
   const insights = AI_ENABLED ? growthInsights(snap) : [];
   const byCategory = revenueByCategory(snap);
   const top = topCustomers(snap);
   const movement = productMovement(snap).slice(0, 8);
+  const periodLabel = fy === "all" ? "all years" : `FY ${fy}`;
 
   return (
     <div>
@@ -42,10 +53,27 @@ export default async function DashboardPage() {
         subtitle={`Welcome back, ${ctx.userName.split(" ")[0]} — live view of ${ctx.organizationName}`}
       />
 
+      <div className="flex flex-wrap items-center gap-1.5 mb-4">
+        <span className="text-xs font-medium text-slate-500 mr-1">Financial year:</span>
+        {["all", ...years].map((y) => (
+          <Link
+            key={y}
+            href={y === "all" ? "/" : `/?fy=${y}`}
+            className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+              fy === y
+                ? "bg-carbon-900 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {y === "all" ? "All years" : y}
+          </Link>
+        ))}
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <StatCard label="Order Value" value={inr(stats.totalRevenue)} hint={`${snap.orders.length} orders`} />
-        <StatCard label="Est. Profit" value={inr(stats.estProfit)} accent="green" />
-        <StatCard label="Receivables" value={inr(outstanding)} hint="unpaid invoices" accent="amber" />
+        <StatCard label={`Order Value (${periodLabel})`} value={inr(stats.totalRevenue)} hint={`${snap.orders.length} orders`} />
+        <StatCard label={`Est. Profit (${periodLabel})`} value={inr(stats.estProfit)} accent="green" />
+        <StatCard label="Receivables" value={inr(outstanding)} hint="unpaid invoices, all time" accent="amber" />
         <StatCard label="Pending Quotes" value={String(stats.pendingQuotations)} accent="amber" />
         <StatCard label="Follow-ups Due" value={String(stats.followUpsDue)} accent="rose" />
       </div>
