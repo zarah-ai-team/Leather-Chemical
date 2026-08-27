@@ -18,3 +18,6 @@ dev-server.log
 
 # one-shot provisioning script with a hardcoded credential — keep local
 scripts/provision-lakshay.ts
+
+# migration runbook contains business figures — keep local only
+docs/11-tally-data-migration-runbook.md
