@@ -41,7 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               alt="Zarah AI"
               width={608}
               height={386}
-              className="h-5 w-auto"
+              className="h-9 w-auto"
               unoptimized
             />
           </a>
