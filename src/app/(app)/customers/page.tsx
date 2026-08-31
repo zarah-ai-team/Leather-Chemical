@@ -22,7 +22,9 @@ export default async function CustomersPage() {
       contact: c.contacts[0]?.name ?? "—",
       country: c.country,
       industry: c.industry ?? "—",
-      annual: Number(c.annualPurchaseValue),
+      annual: c.billing.annualValue,
+      lifetime: c.billing.lifetimeValue,
+      outstanding: c.billing.outstanding,
       lastTouch,
       overdue: lastTouch === null || lastTouch > 45,
     };
@@ -50,6 +52,8 @@ export default async function CustomersPage() {
               <th className="px-4 py-3">Country</th>
               <th className="px-4 py-3">Industry</th>
               <th className="px-4 py-3 text-right">Annual Value</th>
+              <th className="px-4 py-3 text-right">Lifetime</th>
+              <th className="px-4 py-3 text-right">Outstanding</th>
               <th className="px-4 py-3 text-right">Last Touch</th>
             </tr>
           </thead>
@@ -69,6 +73,12 @@ export default async function CustomersPage() {
                 <td className="px-4 py-3 text-slate-600">{r.country}</td>
                 <td className="px-4 py-3 text-slate-600">{r.industry}</td>
                 <td className="px-4 py-3 text-right font-medium">{inr(r.annual)}</td>
+                <td className="px-4 py-3 text-right text-slate-600">{inr(r.lifetime)}</td>
+                <td
+                  className={`px-4 py-3 text-right ${r.outstanding > 0 ? "text-amber-600 font-medium" : "text-slate-400"}`}
+                >
+                  {r.outstanding > 0 ? inr(r.outstanding) : "—"}
+                </td>
                 <td
                   className={`px-4 py-3 text-right ${r.overdue ? "text-rose-600 font-semibold" : "text-slate-500"}`}
                 >

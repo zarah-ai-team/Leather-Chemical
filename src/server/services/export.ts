@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import type { AppContext } from "../context";
 import { roleHas } from "@/lib/permissions";
+import { customerBillingStats } from "./customers";
+import { supplierPurchaseStats } from "./suppliers";
 import {
   CATEGORY_LABELS,
   ORDER_STAGE_LABELS,
@@ -53,29 +55,36 @@ export async function exportModule(
 
   switch (module) {
     case "customers": {
-      const rows = await prisma.customer.findMany({
-        where: { organizationId: org },
-        include: {
-          contacts: { where: { isPrimary: true }, take: 1 },
-          activities: { orderBy: { date: "desc" }, take: 20 },
-          assignedTo: { select: { name: true } },
-        },
-        orderBy: { companyName: "asc" },
-      });
+      const [rows, billing] = await Promise.all([
+        prisma.customer.findMany({
+          where: { organizationId: org },
+          include: {
+            contacts: { where: { isPrimary: true }, take: 1 },
+            activities: { orderBy: { date: "desc" }, take: 20 },
+            assignedTo: { select: { name: true } },
+          },
+          orderBy: { companyName: "asc" },
+        }),
+        customerBillingStats(org),
+      ]);
       const headers = [
         "Company", "GSTIN", "PAN", "Country", "Industry", "Address",
         "Contact", "Email", "Phone", "Credit Limit", "Payment Terms",
-        "Annual Value", "Assigned To", "Last Touch (days)",
+        "Annual Value (12M)", "Lifetime Value", "Outstanding",
+        "Assigned To", "Last Touch (days)",
       ];
       return {
         headers,
         rows: rows.map((c) => {
           const real = c.activities.filter((a) => a.type !== "FOLLOWUP");
           const contact = c.contacts[0];
+          const b = billing.get(c.id);
           return [
             c.companyName, c.gstin ?? "", c.pan ?? "", c.country, c.industry ?? "",
             c.address ?? "", contact?.name ?? "", contact?.email ?? "", contact?.phone ?? "",
-            Number(c.creditLimit), c.paymentTerms ?? "", Number(c.annualPurchaseValue),
+            Number(c.creditLimit), c.paymentTerms ?? "",
+            b?.annualValue || Number(c.annualPurchaseValue),
+            b?.lifetimeValue ?? 0, b?.outstanding ?? 0,
             c.assignedTo?.name ?? "", real.length ? daysSince(real[0].date) : "",
           ];
         }),
@@ -83,17 +92,25 @@ export async function exportModule(
     }
 
     case "suppliers": {
-      const rows = await prisma.supplier.findMany({
-        where: { organizationId: org },
-        include: { products: true },
-        orderBy: { name: "asc" },
-      });
+      const [rows, purchases] = await Promise.all([
+        prisma.supplier.findMany({
+          where: { organizationId: org },
+          include: { products: true },
+          orderBy: { name: "asc" },
+        }),
+        supplierPurchaseStats(org),
+      ]);
       return {
-        headers: ["Supplier", "Country", "Contact", "Email", "Phone", "Products", "Avg Delivery Days", "Quality Rating", "On-time %"],
-        rows: rows.map((s) => [
-          s.name, s.country, s.contactPerson ?? "", s.email ?? "", s.phone ?? "",
-          s.products.length, s.avgDeliveryDays, Number(s.qualityRating), s.reliabilityScore,
-        ]),
+        headers: ["Supplier", "Country", "Contact", "Email", "Phone", "Products", "POs", "Annual Purchase Value (12M)", "Lifetime Purchase Value", "Last Order", "Avg Delivery Days", "Quality Rating", "On-time %"],
+        rows: rows.map((s) => {
+          const p = purchases.get(s.id);
+          return [
+            s.name, s.country, s.contactPerson ?? "", s.email ?? "", s.phone ?? "",
+            s.products.length, p?.poCount ?? 0, p?.annualValue ?? 0, p?.lifetimeValue ?? 0,
+            p?.lastOrderAt ? p.lastOrderAt.toISOString().slice(0, 10) : "",
+            s.avgDeliveryDays, Number(s.qualityRating), s.reliabilityScore,
+          ];
+        }),
       };
     }
 

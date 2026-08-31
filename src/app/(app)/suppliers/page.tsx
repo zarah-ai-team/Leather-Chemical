@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ui";
 import { pageContext } from "@/server/context";
 import { listSuppliers } from "@/server/services/suppliers";
 import { roleHas } from "@/lib/permissions";
+import { inr } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -32,25 +33,44 @@ export default async function SuppliersPage() {
     avgDeliveryDays: s.avgDeliveryDays,
     qualityRating: Number(s.qualityRating),
     reliabilityScore: s.reliabilityScore,
+    // Quoted price history when it exists, else derive from actual PO lines.
     avgPrice: s.prices.length
       ? s.prices.reduce((a, p) => a + Number(p.price), 0) / s.prices.length
-      : Infinity,
+      : (s.purchases.avgUnitCost ?? Infinity),
+    annualValue: s.purchases.annualValue,
+    lifetimeValue: s.purchases.lifetimeValue,
+    poCount: s.purchases.poCount,
+    lastOrderAt: s.purchases.lastOrderAt,
   }));
 
   // Only rank suppliers that actually have data for a given metric — otherwise
   // an unset 0 (e.g. a freshly imported supplier) would win "Fastest" or show a
   // meaningless "0/5". A card is dropped entirely when no supplier has the data.
+  const byValue = rows.filter((r) => r.annualValue > 0);
+  const byVolume = rows.filter((r) => r.poCount > 0);
   const byPrice = rows.filter((r) => Number.isFinite(r.avgPrice));
   const byReliability = rows.filter((r) => r.reliabilityScore > 0);
   const byDelivery = rows.filter((r) => r.avgDeliveryDays > 0);
   const byQuality = rows.filter((r) => r.qualityRating > 0);
 
+  const topValue = byValue.sort((a, b) => b.annualValue - a.annualValue)[0];
+  const topVolume = byVolume.sort((a, b) => b.poCount - a.poCount)[0];
   const cheapest = byPrice.sort((a, b) => a.avgPrice - b.avgPrice)[0];
   const reliable = byReliability.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0];
   const fastest = byDelivery.sort((a, b) => a.avgDeliveryDays - b.avgDeliveryDays)[0];
   const quality = byQuality.sort((a, b) => b.qualityRating - a.qualityRating)[0];
 
   const insights = [
+    topValue && {
+      label: "Top by Value (12M)",
+      name: topValue.name,
+      detail: `${inr(topValue.annualValue)} across ${topValue.poCount} POs`,
+    },
+    topVolume && {
+      label: "Most Ordered",
+      name: topVolume.name,
+      detail: `${topVolume.poCount} POs · ${inr(topVolume.lifetimeValue)} lifetime`,
+    },
     cheapest && {
       label: "Cheapest (avg)",
       name: cheapest.name,
@@ -71,7 +91,9 @@ export default async function SuppliersPage() {
       name: quality.name,
       detail: `${quality.qualityRating}/5 rating`,
     },
-  ].filter((x): x is { label: string; name: string; detail: string } => Boolean(x));
+  ]
+    .filter((x): x is { label: string; name: string; detail: string } => Boolean(x))
+    .slice(0, 4);
 
   return (
     <div>
@@ -102,6 +124,9 @@ export default async function SuppliersPage() {
               <th className="px-4 py-3">Supplier</th>
               <th className="px-4 py-3">Country</th>
               <th className="px-4 py-3 text-right">Products</th>
+              <th className="px-4 py-3 text-right">POs</th>
+              <th className="px-4 py-3 text-right">Annual Value</th>
+              <th className="px-4 py-3 text-right">Last Order</th>
               <th className="px-4 py-3 text-right">Delivery</th>
               <th className="px-4 py-3 text-right">Quality</th>
               <th className="px-4 py-3 text-right">On-time</th>
@@ -120,6 +145,13 @@ export default async function SuppliersPage() {
                 </td>
                 <td className="px-4 py-3 text-slate-600">{s.country}</td>
                 <td className="px-4 py-3 text-right">{s.products}</td>
+                <td className="px-4 py-3 text-right">{s.poCount}</td>
+                <td className="px-4 py-3 text-right font-medium">
+                  {s.annualValue > 0 ? inr(s.annualValue) : "—"}
+                </td>
+                <td className="px-4 py-3 text-right text-slate-500">
+                  {s.lastOrderAt ? s.lastOrderAt.toLocaleDateString("en-IN") : "never"}
+                </td>
                 <td className="px-4 py-3 text-right">{s.avgDeliveryDays}d</td>
                 <td className="px-4 py-3 text-right">{s.qualityRating}/5</td>
                 <td className="px-4 py-3 text-right">

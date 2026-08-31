@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { customerBillingStats } from "./customers";
 import type {
   ActivityType,
   OrderStage,
@@ -137,7 +138,7 @@ export function loadSnapshot(organizationId: string): Promise<Snapshot> {
 }
 
 async function buildSnapshot(organizationId: string): Promise<Snapshot> {
-  const [customers, suppliers, products, quotations, orders, docs] =
+  const [customers, suppliers, products, quotations, orders, docs, billing] =
     await Promise.all([
       prisma.customer.findMany({
         where: { organizationId },
@@ -175,6 +176,7 @@ async function buildSnapshot(organizationId: string): Promise<Snapshot> {
         where: { organizationId, content: { not: null } },
         select: { id: true, title: true, type: true, productId: true, content: true },
       }),
+      customerBillingStats(organizationId),
     ]);
 
   return {
@@ -190,7 +192,9 @@ async function buildSnapshot(organizationId: string): Promise<Snapshot> {
       creditLimit: Number(c.creditLimit),
       paymentTerms: c.paymentTerms ?? "",
       preferredCategories: c.preferredCategories,
-      annualPurchaseValue: Number(c.annualPurchaseValue),
+      // Real billed value from invoices; the stored field is a manual fallback.
+      annualPurchaseValue:
+        (billing.get(c.id)?.annualValue || 0) || Number(c.annualPurchaseValue),
       createdAt: c.createdAt,
       activity: c.activities.map((a) => ({
         id: a.id,

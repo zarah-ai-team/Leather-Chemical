@@ -54,6 +54,10 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
   const summary = [
     `${c.companyName} is a ${c.industry ?? "leather industry"} customer in ${c.country}.`,
     `${c.orders.length} order(s) worth ${inr(totalValue)} on record, average order ${inr(avg)}.`,
+    c.billing.invoiceCount
+      ? `${c.billing.invoiceCount} invoice(s) totalling ${inr(c.billing.lifetimeValue)}, ${inr(c.billing.annualValue)} billed in the last 12 months.`
+      : "",
+    c.billing.outstanding > 0 ? `${inr(c.billing.outstanding)} currently outstanding.` : "",
     c.preferredCategories.length
       ? `Prefers ${c.preferredCategories.map((x) => CATEGORY_LABELS[x]).join(", ")}.`
       : "",
@@ -114,7 +118,9 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
               <Row label="GSTIN" value={c.gstin ?? "—"} />
               <Row label="Credit Limit" value={inr(Number(c.creditLimit))} />
               <Row label="Payment Terms" value={c.paymentTerms ?? "—"} />
-              <Row label="Annual Value" value={inr(Number(c.annualPurchaseValue))} />
+              <Row label="Annual Value (12M billed)" value={inr(c.billing.annualValue)} />
+              <Row label="Lifetime Business" value={inr(c.billing.lifetimeValue)} />
+              <Row label="Outstanding" value={inr(c.billing.outstanding)} />
               <Row
                 label="Preferred"
                 value={
