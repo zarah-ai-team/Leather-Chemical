@@ -2,8 +2,8 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { signIn } from "@/lib/auth-client";
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { signIn, requestPasswordReset } from "@/lib/auth-client";
 
 export default function LoginPage() {
   return (
@@ -16,11 +16,13 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const [view, setView] = useState<"signin" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,6 +36,35 @@ function LoginForm() {
     }
     router.push(params.get("from") ?? "/");
     router.refresh();
+  }
+
+  async function submitForgot(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const { error } = await requestPasswordReset({
+      email,
+      redirectTo: "/reset-password",
+    });
+    setBusy(false);
+    if (error) {
+      setError(error.message ?? "Something went wrong. Please try again.");
+      return;
+    }
+    // Always show the same confirmation, whether or not the email exists.
+    setSent(true);
+  }
+
+  function goToForgot() {
+    setError(null);
+    setPassword("");
+    setView("forgot");
+  }
+
+  function backToSignIn() {
+    setError(null);
+    setSent(false);
+    setView("signin");
   }
 
   return (
@@ -83,70 +114,145 @@ function LoginForm() {
           </div>
 
           <div className="card p-8">
-            <form onSubmit={submit} className="space-y-4">
-              <div>
-                <label htmlFor="email" className="text-sm font-medium text-slate-600">
-                  Email
-                </label>
-                <div className="relative mt-1">
-                  <Mail
-                    size={16}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-                  <input
-                    id="email"
-                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-                    type="email"
-                    required
-                    autoFocus
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@company.com"
-                  />
+            {view === "signin" ? (
+              <form onSubmit={submit} className="space-y-4">
+                <div>
+                  <label htmlFor="email" className="text-sm font-medium text-slate-600">
+                    Email
+                  </label>
+                  <div className="relative mt-1">
+                    <Mail
+                      size={16}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                    <input
+                      id="email"
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                      type="email"
+                      required
+                      autoFocus
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@company.com"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label htmlFor="password" className="text-sm font-medium text-slate-600">
-                  Password
-                </label>
-                <div className="relative mt-1">
-                  <Lock
-                    size={16}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-                  <input
-                    id="password"
-                    className="w-full pl-9 pr-9 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    tabIndex={-1}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="password" className="text-sm font-medium text-slate-600">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={goToForgot}
+                      className="text-xs font-medium text-brand-600 hover:text-brand-700"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <div className="relative mt-1">
+                    <Lock
+                      size={16}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                    <input
+                      id="password"
+                      className="w-full pl-9 pr-9 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      tabIndex={-1}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
+                {error && (
+                  <p className="text-sm text-rose-600 bg-rose-50 rounded-lg px-3 py-2">{error}</p>
+                )}
+                <button
+                  className="btn btn-primary w-full justify-center py-2.5"
+                  disabled={busy}
+                >
+                  {busy && <Loader2 size={16} className="animate-spin" />}
+                  Sign in
+                </button>
+              </form>
+            ) : sent ? (
+              <div className="space-y-4 text-center">
+                <CheckCircle2 size={40} className="mx-auto text-emerald-500" />
+                <h2 className="text-lg font-semibold text-slate-800">Check your email</h2>
+                <p className="text-sm text-slate-600">
+                  If an account exists for <span className="font-medium">{email}</span>, we&apos;ve
+                  sent a link to reset your password. It expires in 1 hour.
+                </p>
+                <button
+                  type="button"
+                  onClick={backToSignIn}
+                  className="btn w-full justify-center py-2.5 border border-slate-300 text-slate-700 hover:bg-slate-50"
+                >
+                  <ArrowLeft size={16} /> Back to sign in
+                </button>
               </div>
-              {error && (
-                <p className="text-sm text-rose-600 bg-rose-50 rounded-lg px-3 py-2">{error}</p>
-              )}
-              <button
-                className="btn btn-primary w-full justify-center py-2.5"
-                disabled={busy}
-              >
-                {busy && <Loader2 size={16} className="animate-spin" />}
-                Sign in
-              </button>
-            </form>
+            ) : (
+              <form onSubmit={submitForgot} className="space-y-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-800">Reset your password</h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Enter your account email and we&apos;ll send you a link to set a new password.
+                  </p>
+                </div>
+                <div>
+                  <label htmlFor="forgot-email" className="text-sm font-medium text-slate-600">
+                    Email
+                  </label>
+                  <div className="relative mt-1">
+                    <Mail
+                      size={16}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+                    <input
+                      id="forgot-email"
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                      type="email"
+                      required
+                      autoFocus
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@company.com"
+                    />
+                  </div>
+                </div>
+                {error && (
+                  <p className="text-sm text-rose-600 bg-rose-50 rounded-lg px-3 py-2">{error}</p>
+                )}
+                <button
+                  className="btn btn-primary w-full justify-center py-2.5"
+                  disabled={busy}
+                >
+                  {busy && <Loader2 size={16} className="animate-spin" />}
+                  Send reset link
+                </button>
+                <button
+                  type="button"
+                  onClick={backToSignIn}
+                  className="w-full flex items-center justify-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-700"
+                >
+                  <ArrowLeft size={15} /> Back to sign in
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>

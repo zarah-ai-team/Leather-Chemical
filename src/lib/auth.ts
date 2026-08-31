@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
+import { sendEmail, passwordResetEmail } from "./email";
 
 /**
  * Server-side Better Auth instance.
@@ -20,6 +21,14 @@ export const auth = betterAuth({
     enabled: true,
     disableSignUp: true,
     minPasswordLength: 8,
+    // Self-service reset: Better Auth emails a one-time link to the account's
+    // own address (never revealing whether the address exists), and only the
+    // inbox owner can complete the reset on /reset-password. Token valid 1 hour.
+    resetPasswordTokenExpiresIn: 60 * 60,
+    sendResetPassword: async ({ user, url }) => {
+      const { subject, html, text } = passwordResetEmail(user.name, url);
+      await sendEmail({ to: user.email, subject, html, text });
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days

@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * every page (pageContext) and API route (requirePermission) — the middleware
  * only provides fast UX redirects, it is not the security boundary.
  */
-const PUBLIC_PATHS = ["/login", "/api/auth"];
+const PUBLIC_PATHS = ["/login", "/reset-password", "/api/auth"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
