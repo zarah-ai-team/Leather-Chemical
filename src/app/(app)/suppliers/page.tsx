@@ -37,10 +37,41 @@ export default async function SuppliersPage() {
       : Infinity,
   }));
 
-  const cheapest = [...rows].sort((a, b) => a.avgPrice - b.avgPrice)[0];
-  const reliable = [...rows].sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0];
-  const fastest = [...rows].sort((a, b) => a.avgDeliveryDays - b.avgDeliveryDays)[0];
-  const quality = [...rows].sort((a, b) => b.qualityRating - a.qualityRating)[0];
+  // Only rank suppliers that actually have data for a given metric — otherwise
+  // an unset 0 (e.g. a freshly imported supplier) would win "Fastest" or show a
+  // meaningless "0/5". A card is dropped entirely when no supplier has the data.
+  const byPrice = rows.filter((r) => Number.isFinite(r.avgPrice));
+  const byReliability = rows.filter((r) => r.reliabilityScore > 0);
+  const byDelivery = rows.filter((r) => r.avgDeliveryDays > 0);
+  const byQuality = rows.filter((r) => r.qualityRating > 0);
+
+  const cheapest = byPrice.sort((a, b) => a.avgPrice - b.avgPrice)[0];
+  const reliable = byReliability.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0];
+  const fastest = byDelivery.sort((a, b) => a.avgDeliveryDays - b.avgDeliveryDays)[0];
+  const quality = byQuality.sort((a, b) => b.qualityRating - a.qualityRating)[0];
+
+  const insights = [
+    cheapest && {
+      label: "Cheapest (avg)",
+      name: cheapest.name,
+      detail: `~₹${Math.round(cheapest.avgPrice)}/unit avg`,
+    },
+    reliable && {
+      label: "Most Reliable",
+      name: reliable.name,
+      detail: `${reliable.reliabilityScore}% on-time`,
+    },
+    fastest && {
+      label: "Fastest",
+      name: fastest.name,
+      detail: `${fastest.avgDeliveryDays} days avg`,
+    },
+    quality && {
+      label: "Best Quality",
+      name: quality.name,
+      detail: `${quality.qualityRating}/5 rating`,
+    },
+  ].filter((x): x is { label: string; name: string; detail: string } => Boolean(x));
 
   return (
     <div>
@@ -56,12 +87,11 @@ export default async function SuppliersPage() {
         }
       />
 
-      {rows.length > 0 && (
+      {insights.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Insight label="Cheapest (avg)" name={cheapest.name} detail={cheapest.avgPrice === Infinity ? "no price data" : `~₹${Math.round(cheapest.avgPrice)}/unit avg`} />
-          <Insight label="Most Reliable" name={reliable.name} detail={`${reliable.reliabilityScore}% on-time`} />
-          <Insight label="Fastest" name={fastest.name} detail={`${fastest.avgDeliveryDays} days avg`} />
-          <Insight label="Best Quality" name={quality.name} detail={`${quality.qualityRating}/5 rating`} />
+          {insights.map((i) => (
+            <Insight key={i.label} label={i.label} name={i.name} detail={i.detail} />
+          ))}
         </div>
       )}
 
