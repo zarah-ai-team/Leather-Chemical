@@ -70,7 +70,7 @@ export default async function DashboardPage({
         ))}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
         <StatCard label={`Order Value (${periodLabel})`} value={inr(stats.totalRevenue)} hint={`${snap.orders.length} orders`} />
         <StatCard label={`Est. Profit (${periodLabel})`} value={inr(stats.estProfit)} accent="green" />
         <StatCard label="Receivables" value={inr(outstanding)} hint="unpaid invoices, all time" accent="amber" />

@@ -24,18 +24,22 @@ export function StatCard({
   hint?: string;
   accent?: "brand" | "green" | "amber" | "rose" | "slate";
 }) {
-  const accents: Record<string, string> = {
-    brand: "text-brand-700",
-    green: "text-emerald-600",
-    amber: "text-amber-600",
-    rose: "text-rose-600",
-    slate: "text-slate-700",
+  const accents: Record<string, { text: string; bar: string }> = {
+    brand: { text: "text-brand-700", bar: "bg-brand-500" },
+    green: { text: "text-emerald-600", bar: "bg-emerald-500" },
+    amber: { text: "text-amber-600", bar: "bg-amber-500" },
+    rose: { text: "text-rose-600", bar: "bg-rose-500" },
+    slate: { text: "text-slate-700", bar: "bg-slate-400" },
   };
+  const a = accents[accent] ?? accents.brand;
   return (
-    <div className="card p-4">
-      <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</div>
-      <div className={`text-2xl font-semibold mt-1 ${accents[accent]}`}>{value}</div>
-      {hint && <div className="text-xs text-slate-400 mt-1">{hint}</div>}
+    <div className="card p-4 flex items-stretch gap-3 transition-shadow duration-200 hover:shadow-md">
+      <div className={`w-1 shrink-0 rounded-full ${a.bar}`} aria-hidden />
+      <div className="min-w-0">
+        <div className="text-[11px] sm:text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</div>
+        <div className={`text-xl sm:text-2xl font-semibold mt-1 tabular-nums leading-tight ${a.text}`}>{value}</div>
+        {hint && <div className="text-xs text-slate-400 mt-1 truncate">{hint}</div>}
+      </div>
     </div>
   );
 }
