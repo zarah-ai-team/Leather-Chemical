@@ -1,5 +1,6 @@
 import { PageHeader, Section } from "@/components/ui";
 import StockMovementForm from "@/components/forms/StockMovementForm";
+import { StockTable, MovementsTable } from "@/components/InventoryTables";
 import { pageContext } from "@/server/context";
 import { prisma } from "@/lib/prisma";
 import {
@@ -8,7 +9,6 @@ import {
   listWarehouses,
 } from "@/server/services/inventory";
 import { roleHas } from "@/lib/permissions";
-import { STOCK_MOVEMENT_LABELS } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -27,12 +27,27 @@ export default async function InventoryPage() {
     }),
   ]);
 
-  const MOVEMENT_BADGE: Record<string, string> = {
-    IN: "bg-emerald-100 text-emerald-700",
-    OUT: "bg-rose-100 text-rose-700",
-    RETURN: "bg-blue-100 text-blue-700",
-    ADJUSTMENT: "bg-amber-100 text-amber-700",
-  };
+  const stockRows = stock.map((s) => {
+    const qty = Number(s.qty);
+    return {
+      id: s.id,
+      product: s.product.name,
+      unit: s.product.unit,
+      warehouse: s.warehouse.name,
+      batchNo: s.batchNo ?? "",
+      qty,
+      low: s.reorderLevel !== null && qty <= Number(s.reorderLevel),
+    };
+  });
+
+  const movementRows = movements.map((m) => ({
+    id: m.id,
+    date: m.date.toISOString(),
+    product: m.product.name,
+    unit: m.product.unit,
+    type: m.type,
+    qty: Number(m.qty),
+  }));
 
   return (
     <div>
@@ -53,36 +68,7 @@ export default async function InventoryPage() {
               No stock recorded yet — record a Goods In movement to get started.
             </p>
           ) : (
-            <div className="overflow-x-auto"><table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
-                  <th className="py-2">Product</th>
-                  <th className="py-2">Warehouse</th>
-                  <th className="py-2">Batch</th>
-                  <th className="py-2 text-right">Qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stock.map((s) => {
-                  const qty = Number(s.qty);
-                  const low =
-                    s.reorderLevel !== null && qty <= Number(s.reorderLevel);
-                  return (
-                    <tr key={s.id} className="border-b border-slate-100">
-                      <td className="py-2 font-medium">{s.product.name}</td>
-                      <td className="py-2 text-slate-600">{s.warehouse.name}</td>
-                      <td className="py-2 text-slate-400">{s.batchNo ?? "—"}</td>
-                      <td
-                        className={`py-2 text-right font-medium ${low ? "text-rose-600" : ""}`}
-                      >
-                        {qty} {s.product.unit}
-                        {low && <span className="badge bg-rose-100 text-rose-700 ml-2">reorder</span>}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table></div>
+            <StockTable rows={stockRows} />
           )}
         </Section>
 
@@ -90,34 +76,7 @@ export default async function InventoryPage() {
           {movements.length === 0 ? (
             <p className="text-sm text-slate-500">No movements yet.</p>
           ) : (
-            <div className="overflow-x-auto"><table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
-                  <th className="py-2">When</th>
-                  <th className="py-2">Product</th>
-                  <th className="py-2">Type</th>
-                  <th className="py-2 text-right">Qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {movements.map((m) => (
-                  <tr key={m.id} className="border-b border-slate-100">
-                    <td className="py-2 text-slate-500 whitespace-nowrap">
-                      {m.date.toLocaleDateString()}
-                    </td>
-                    <td className="py-2">{m.product.name}</td>
-                    <td className="py-2">
-                      <span className={`badge ${MOVEMENT_BADGE[m.type]}`}>
-                        {STOCK_MOVEMENT_LABELS[m.type]}
-                      </span>
-                    </td>
-                    <td className="py-2 text-right">
-                      {Number(m.qty)} {m.product.unit}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table></div>
+            <MovementsTable rows={movementRows} />
           )}
         </Section>
       </div>

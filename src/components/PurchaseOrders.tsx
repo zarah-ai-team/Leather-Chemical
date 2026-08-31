@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, PackageCheck, Plus, Sparkles, Trash2 } from "lucide-react";
+import TableToolbar from "@/components/TableToolbar";
 import { inr, PURCHASE_STATUS_LABELS, PURCHASE_STATUSES } from "@/lib/labels";
 
 export interface POLine {
@@ -69,6 +70,23 @@ export default function PurchaseOrders({
   const [receiptWarehouse, setReceiptWarehouse] = useState(warehouses[0]?.id ?? "");
   const [receiptBatch, setReceiptBatch] = useState("");
   const [receiptQty, setReceiptQty] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const visibleOrders = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return orders.filter((po) => {
+      if (
+        needle &&
+        !`${po.number} ${po.supplierName} ${po.lines.map((l) => l.productName).join(" ")}`
+          .toLowerCase()
+          .includes(needle)
+      )
+        return false;
+      if (statusFilter !== "all" && po.status !== statusFilter) return false;
+      return true;
+    });
+  }, [orders, search, statusFilter]);
 
   const total = lines.reduce(
     (s, l) => s + (Number(l.qty) || 0) * (Number(l.unitCost) || 0),
@@ -313,14 +331,48 @@ export default function PurchaseOrders({
         </form>
       )}
 
+      {orders.length > 0 && (
+        <div className="card">
+          <TableToolbar
+            search={search}
+            onSearch={setSearch}
+            placeholder="Search PO number, supplier or product…"
+            selects={[
+              {
+                value: statusFilter,
+                onChange: setStatusFilter,
+                options: [
+                  { value: "all", label: "All statuses" },
+                  ...PURCHASE_STATUSES.map((s) => ({
+                    value: s,
+                    label: PURCHASE_STATUS_LABELS[s],
+                  })),
+                ],
+              },
+            ]}
+            shown={visibleOrders.length}
+            total={orders.length}
+            onClear={() => {
+              setSearch("");
+              setStatusFilter("all");
+            }}
+            hasFilters={search !== "" || statusFilter !== "all"}
+          />
+        </div>
+      )}
+
       {orders.length === 0 ? (
         <div className="card p-8 text-center text-sm text-slate-500">
           No purchase orders yet. Create one to order stock from a supplier — receiving it will add
           the goods to inventory automatically.
         </div>
+      ) : visibleOrders.length === 0 ? (
+        <div className="card p-8 text-center text-sm text-slate-500">
+          No purchase orders match the current filters.
+        </div>
       ) : (
         <div className="space-y-3">
-          {orders.map((po) => {
+          {visibleOrders.map((po) => {
             const value = po.lines.reduce((s, l) => s + l.qty * l.unitCost, 0);
             const outstanding = po.lines.reduce(
               (s, l) => s + Math.max(0, l.qty - l.receivedQty),

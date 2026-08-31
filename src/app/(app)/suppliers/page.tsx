@@ -5,6 +5,7 @@ import { pageContext } from "@/server/context";
 import { listSuppliers } from "@/server/services/suppliers";
 import { roleHas } from "@/lib/permissions";
 import { inr } from "@/lib/labels";
+import SuppliersTable from "@/components/SuppliersTable";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export default async function SuppliersPage() {
     annualValue: s.purchases.annualValue,
     lifetimeValue: s.purchases.lifetimeValue,
     poCount: s.purchases.poCount,
-    lastOrderAt: s.purchases.lastOrderAt,
+    lastOrderAt: s.purchases.lastOrderAt?.toISOString() ?? null,
   }));
 
   // Only rank suppliers that actually have data for a given metric — otherwise
@@ -117,65 +118,7 @@ export default async function SuppliersPage() {
         </div>
       )}
 
-      <div className="card overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
-              <th className="px-4 py-3">Supplier</th>
-              <th className="px-4 py-3">Country</th>
-              <th className="px-4 py-3 text-right">Products</th>
-              <th className="px-4 py-3 text-right">POs</th>
-              <th className="px-4 py-3 text-right">Annual Value</th>
-              <th className="px-4 py-3 text-right">Last Order</th>
-              <th className="px-4 py-3 text-right">Delivery</th>
-              <th className="px-4 py-3 text-right">Quality</th>
-              <th className="px-4 py-3 text-right">On-time</th>
-              {canManage && <th className="px-4 py-3" />}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((s) => (
-              <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-3">
-                  <div className="font-medium">{s.name}</div>
-                  <div className="text-xs text-slate-400">
-                    {s.contactPerson}
-                    {s.email && ` · ${s.email}`}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-slate-600">{s.country}</td>
-                <td className="px-4 py-3 text-right">{s.products}</td>
-                <td className="px-4 py-3 text-right">{s.poCount}</td>
-                <td className="px-4 py-3 text-right font-medium">
-                  {s.annualValue > 0 ? inr(s.annualValue) : "—"}
-                </td>
-                <td className="px-4 py-3 text-right text-slate-500">
-                  {s.lastOrderAt ? s.lastOrderAt.toLocaleDateString("en-IN") : "never"}
-                </td>
-                <td className="px-4 py-3 text-right">{s.avgDeliveryDays}d</td>
-                <td className="px-4 py-3 text-right">{s.qualityRating}/5</td>
-                <td className="px-4 py-3 text-right">
-                  <span
-                    className={`badge ${s.reliabilityScore >= 90 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}
-                  >
-                    {s.reliabilityScore}%
-                  </span>
-                </td>
-                {canManage && (
-                  <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/suppliers/${s.id}/edit`}
-                      className="text-brand-700 hover:underline text-xs font-medium"
-                    >
-                      Edit
-                    </Link>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <SuppliersTable rows={rows} canManage={canManage} />
     </div>
   );
 }

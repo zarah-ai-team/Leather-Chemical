@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { AlertCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/ui";
+import CustomersTable from "@/components/CustomersTable";
 import { pageContext } from "@/server/context";
 import { listCustomers } from "@/server/services/customers";
 import { roleHas } from "@/lib/permissions";
-import { inr, daysSince } from "@/lib/labels";
+import { daysSince } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -43,52 +44,7 @@ export default async function CustomersPage() {
           ) : undefined
         }
       />
-      <div className="card overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
-              <th className="px-4 py-3">Company</th>
-              <th className="px-4 py-3">Contact</th>
-              <th className="px-4 py-3">Country</th>
-              <th className="px-4 py-3">Industry</th>
-              <th className="px-4 py-3 text-right">Annual Value</th>
-              <th className="px-4 py-3 text-right">Lifetime</th>
-              <th className="px-4 py-3 text-right">Outstanding</th>
-              <th className="px-4 py-3 text-right">Last Touch</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/customers/${r.id}`}
-                    className="font-medium text-brand-700 hover:underline inline-flex items-center gap-1.5"
-                  >
-                    {r.companyName}
-                    {r.overdue && <AlertCircle size={14} className="text-rose-500" />}
-                  </Link>
-                </td>
-                <td className="px-4 py-3 text-slate-600">{r.contact}</td>
-                <td className="px-4 py-3 text-slate-600">{r.country}</td>
-                <td className="px-4 py-3 text-slate-600">{r.industry}</td>
-                <td className="px-4 py-3 text-right font-medium">{inr(r.annual)}</td>
-                <td className="px-4 py-3 text-right text-slate-600">{inr(r.lifetime)}</td>
-                <td
-                  className={`px-4 py-3 text-right ${r.outstanding > 0 ? "text-amber-600 font-medium" : "text-slate-400"}`}
-                >
-                  {r.outstanding > 0 ? inr(r.outstanding) : "—"}
-                </td>
-                <td
-                  className={`px-4 py-3 text-right ${r.overdue ? "text-rose-600 font-semibold" : "text-slate-500"}`}
-                >
-                  {r.lastTouch === null ? "never" : `${r.lastTouch}d ago`}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <CustomersTable rows={rows} />
     </div>
   );
 }
